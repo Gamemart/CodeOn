@@ -1,63 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import DiscussionCard from '@/components/DiscussionCard';
 import CreateDiscussion from '@/components/CreateDiscussion';
 import SearchAndFilter from '@/components/SearchAndFilter';
-import AuthModal from '@/components/AuthModal';
+import { useAuth } from '@/hooks/useAuth';
+import { useDiscussions } from '@/hooks/useDiscussions';
 import { toast } from '@/hooks/use-toast';
-
-// Mock data
-const mockDiscussions = [
-  {
-    id: '1',
-    title: 'Welcome to our community! Let\'s discuss the future of web development',
-    body: 'I\'m excited to see how React Server Components and other modern technologies are shaping the way we build applications. What are your thoughts on the current state of frontend development? Are we moving in the right direction with all these new frameworks and paradigms?',
-    author: 'Alex Chen',
-    authorInitials: 'AC',
-    createdAt: '2 hours ago',
-    tags: ['react', 'webdev', 'frontend'],
-    repliesCount: 12,
-    likesCount: 24,
-    isLiked: false
-  },
-  {
-    id: '2',
-    title: 'Best practices for state management in 2024',
-    body: 'I\'ve been working with various state management solutions lately - from Redux Toolkit to Zustand, and even the new use() hook in React. Each has its place, but I\'m curious about what the community prefers for different use cases.',
-    author: 'Sarah Johnson',
-    authorInitials: 'SJ',
-    createdAt: '4 hours ago',
-    tags: ['react', 'state-management', 'redux'],
-    repliesCount: 8,
-    likesCount: 15,
-    isLiked: true
-  },
-  {
-    id: '3',
-    title: 'TypeScript vs JavaScript: Still relevant in 2024?',
-    body: 'With all the tooling improvements and IDE support, is the TypeScript vs JavaScript debate still relevant? I\'ve been a TypeScript advocate for years, but I\'m seeing some interesting arguments for staying with vanilla JS in certain contexts.',
-    author: 'Mike Rodriguez',
-    authorInitials: 'MR',
-    createdAt: '6 hours ago',
-    tags: ['typescript', 'javascript', 'debate'],
-    repliesCount: 20,
-    likesCount: 32,
-    isLiked: false
-  }
-];
 
 const popularTags = ['react', 'typescript', 'webdev', 'frontend', 'javascript', 'state-management', 'nextjs', 'tailwind'];
 
 const Index = () => {
-  const [discussions, setDiscussions] = useState(mockDiscussions);
-  const [filteredDiscussions, setFilteredDiscussions] = useState(mockDiscussions);
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { discussions, loading: discussionsLoading, createDiscussion, toggleLike } = useDiscussions();
+  const [filteredDiscussions, setFilteredDiscussions] = useState(discussions);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const navigate = useNavigate();
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
 
   // Filter discussions based on search and tags
   useEffect(() => {
@@ -68,14 +37,16 @@ const Index = () => {
       filtered = filtered.filter(discussion =>
         discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         discussion.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        discussion.discussion_tags.some(tag => 
+          tag.tag.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       );
     }
 
     // Filter by active tags
     if (activeFilters.length > 0) {
       filtered = filtered.filter(discussion =>
-        discussion.tags.some(tag => activeFilters.includes(tag))
+        discussion.discussion_tags.some(tag => activeFilters.includes(tag.tag))
       );
     }
 
@@ -101,66 +72,46 @@ const Index = () => {
     body: string;
     tags: string[];
   }) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    const discussion = {
-      id: Date.now().toString(),
-      ...newDiscussion,
-      author: user.name,
-      authorInitials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-      createdAt: 'Just now',
-      repliesCount: 0,
-      likesCount: 0,
-      isLiked: false
-    };
-
-    setDiscussions([discussion, ...discussions]);
+    createDiscussion(newDiscussion);
   };
 
   const handleReply = (discussionId: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
     toast({
       title: "Reply feature coming soon!",
-      description: "This will open a reply dialog when Supabase is connected."
+      description: "This will open a reply dialog in the next update."
     });
   };
 
   const handleLike = (discussionId: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    setDiscussions(discussions.map(discussion =>
-      discussion.id === discussionId
-        ? {
-            ...discussion,
-            isLiked: !discussion.isLiked,
-            likesCount: discussion.isLiked 
-              ? discussion.likesCount - 1 
-              : discussion.likesCount + 1
-          }
-        : discussion
-    ));
+    toggleLike(discussionId);
   };
 
-  const handleLogin = (userData: { name: string; email: string }) => {
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    await signOut();
     toast({
       title: "Signed out",
       description: "You've been successfully signed out."
     });
+    navigate('/auth');
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth
+  }
+
+  const userDisplayName = user.user_metadata?.full_name || user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+  const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -179,34 +130,24 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium text-gray-700">{user.name}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="text-gray-600 hover:text-red-600"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium text-gray-700">{userDisplayName}</span>
                 </div>
-              ) : (
                 <Button
-                  onClick={() => setShowAuthModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-gray-600 hover:text-red-600"
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  Join Discussion
+                  <LogOut className="h-4 w-4" />
                 </Button>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -225,8 +166,8 @@ const Index = () => {
                     <Users className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">1.2k</p>
-                    <p className="text-sm text-gray-500">Members</p>
+                    <p className="text-2xl font-bold text-gray-900">{discussions.length}</p>
+                    <p className="text-sm text-gray-500">Discussions</p>
                   </div>
                 </div>
               </div>
@@ -237,8 +178,10 @@ const Index = () => {
                     <TrendingUp className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">89</p>
-                    <p className="text-sm text-gray-500">Active Today</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {discussions.reduce((sum, d) => sum + d.replies_count, 0)}
+                    </p>
+                    <p className="text-sm text-gray-500">Total Replies</p>
                   </div>
                 </div>
               </div>
@@ -272,33 +215,51 @@ const Index = () => {
 
             {/* Discussion Feed */}
             <div className="space-y-4">
-              {filteredDiscussions.length > 0 ? (
-                filteredDiscussions.map((discussion) => (
-                  <DiscussionCard
-                    key={discussion.id}
-                    discussion={discussion}
-                    onReply={handleReply}
-                    onLike={handleLike}
-                  />
-                ))
+              {discussionsLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-500">Loading discussions...</p>
+                </div>
+              ) : filteredDiscussions.length > 0 ? (
+                filteredDiscussions.map((discussion) => {
+                  const authorName = discussion.profiles?.full_name || 
+                                   discussion.profiles?.username || 
+                                   'Anonymous User';
+                  const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                  const tags = discussion.discussion_tags.map(dt => dt.tag);
+                  const timeAgo = new Date(discussion.created_at).toLocaleDateString();
+
+                  return (
+                    <DiscussionCard
+                      key={discussion.id}
+                      discussion={{
+                        id: discussion.id,
+                        title: discussion.title,
+                        body: discussion.body,
+                        author: authorName,
+                        authorInitials,
+                        createdAt: timeAgo,
+                        tags,
+                        repliesCount: discussion.replies_count,
+                        likesCount: discussion.likes_count,
+                        isLiked: discussion.user_liked || false
+                      }}
+                      onReply={handleReply}
+                      onLike={handleLike}
+                    />
+                  );
+                })
               ) : (
                 <div className="text-center py-12">
                   <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                  <p className="text-gray-500">Try adjusting your search or filters</p>
+                  <p className="text-gray-500">Try adjusting your search or filters, or create the first discussion!</p>
                 </div>
               )}
             </div>
           </div>
         </div>
       </main>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={handleLogin}
-      />
     </div>
   );
 };

@@ -57,11 +57,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     setTags([]);
     setTagInput('');
     setIsOpen(false);
-    
-    toast({
-      title: "Discussion created!",
-      description: "Your discussion has been posted successfully."
-    });
   };
 
   if (!isOpen) {
