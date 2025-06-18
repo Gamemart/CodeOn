@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -31,7 +30,7 @@ export const useDiscussions = () => {
         .from('discussions')
         .select(`
           *,
-          profiles!discussions_author_id_fkey (username, full_name),
+          profiles!inner(username, full_name),
           discussion_tags (tag)
         `)
         .order('created_at', { ascending: false });
