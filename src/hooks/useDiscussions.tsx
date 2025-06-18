@@ -31,7 +31,7 @@ export const useDiscussions = () => {
         .from('discussions')
         .select(`
           *,
-          profiles:author_id (username, full_name),
+          profiles!discussions_author_id_fkey (username, full_name),
           discussion_tags (tag)
         `)
         .order('created_at', { ascending: false });
