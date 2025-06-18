@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut } from 'lucide-react';
@@ -73,13 +72,6 @@ const Index = () => {
     tags: string[];
   }) => {
     createDiscussion(newDiscussion);
-  };
-
-  const handleReply = (discussionId: string) => {
-    toast({
-      title: "Reply feature coming soon!",
-      description: "This will open a reply dialog in the next update."
-    });
   };
 
   const handleLike = (discussionId: string) => {
@@ -244,7 +236,7 @@ const Index = () => {
                         likesCount: discussion.likes_count,
                         isLiked: discussion.user_liked || false
                       }}
-                      onReply={handleReply}
+                      onReply={() => {}} // No longer needed, handled in ReplySection
                       onLike={handleLike}
                     />
                   );

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ReplySection from './ReplySection';
 
 interface Discussion {
   id: string;
@@ -27,6 +28,11 @@ interface DiscussionCardProps {
 
 const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+
+  const handleReplyClick = () => {
+    setShowReplies(!showReplies);
+  };
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/30 backdrop-blur-sm">
@@ -95,7 +101,7 @@ const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) =>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onReply(discussion.id)}
+              onClick={handleReplyClick}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <MessageCircle className="h-4 w-4" />
@@ -103,6 +109,10 @@ const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) =>
             </Button>
           </div>
         </div>
+
+        {showReplies && (
+          <ReplySection discussionId={discussion.id} />
+        )}
       </CardContent>
     </Card>
   );
