@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -45,10 +46,10 @@ export const useDiscussions = () => {
           profiles!inner(id, username, full_name, status_message, avatar_url),
           discussion_tags(tag),
           replies_count:replies(count),
-          likes_count:discussion_likes(count),
-          user_liked:discussion_likes!left(user_id)
+          likes_count:likes(count),
+          user_liked:likes!left(user_id)
         `)
-        .eq('discussion_likes.user_id', user?.id || '')
+        .eq('likes.user_id', user?.id || '')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
