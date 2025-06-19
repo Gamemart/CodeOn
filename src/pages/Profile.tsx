@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -17,6 +16,7 @@ import { useFollows } from '@/hooks/useFollows';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from '@/hooks/use-toast';
+import { getInlineBackgroundStyle } from '@/utils/colorExtractor';
 
 interface Discussion {
   id: string;
@@ -117,8 +117,14 @@ const Profile = () => {
   const isOwnProfile = currentUser?.id === userId;
   const canModerate = userRole === 'admin' || userRole === 'moderator';
 
+  // Get dynamic background style based on banner
+  const dynamicBackgroundStyle = getInlineBackgroundStyle(profile.banner_type, profile.banner_value);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900">
+    <div 
+      className="min-h-screen transition-all duration-700 ease-in-out"
+      style={dynamicBackgroundStyle}
+    >
       {/* Header */}
       <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
