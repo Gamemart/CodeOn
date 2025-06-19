@@ -174,6 +174,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          profile_alignment: string | null
           status_message: string | null
           updated_at: string
           username: string | null
@@ -185,6 +186,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          profile_alignment?: string | null
           status_message?: string | null
           updated_at?: string
           username?: string | null
@@ -196,6 +198,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          profile_alignment?: string | null
           status_message?: string | null
           updated_at?: string
           username?: string | null
