@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX } from 'lucide-react';
@@ -8,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DiscussionCard from '@/components/DiscussionCard';
+import CustomRoleBadge from '@/components/CustomRoleBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollows } from '@/hooks/useFollows';
@@ -180,11 +180,12 @@ const Profile = () => {
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                     <Badge variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}>
                       <Shield className="h-3 w-3 mr-1" />
                       {userRoleData}
                     </Badge>
+                    {userId && <CustomRoleBadge userId={userId} />}
                   </div>
                 </div>
 
@@ -275,6 +276,7 @@ const Profile = () => {
                       title: discussion.title,
                       body: discussion.body,
                       author: displayName,
+                      authorId: userId,
                       authorInitials: initials,
                       createdAt: new Date(discussion.created_at).toLocaleDateString(),
                       tags,
