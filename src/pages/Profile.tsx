@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX } from 'lucide-react';
+import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DiscussionCard from '@/components/DiscussionCard';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
+import ProfileBanner from '@/components/ProfileBanner';
+import EditProfileModal from '@/components/EditProfileModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollows } from '@/hooks/useFollows';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { useProfile } from '@/hooks/useProfile';
 import { toast } from '@/hooks/use-toast';
-
-interface UserProfile {
-  id: string;
-  username: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-}
 
 interface Discussion {
   id: string;
@@ -38,10 +33,11 @@ const Profile = () => {
   const { user: currentUser } = useAuth();
   const { followers, following, isFollowing, toggleFollow } = useFollows(userId);
   const { userRole, updateUserRole, moderateUser } = useUserRoles();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { profile, loading: profileLoading, updateProfile } = useProfile(userId);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [userRoleData, setUserRoleData] = useState<string>('user');
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -72,6 +68,13 @@ const Profile = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserDiscussions();
+      fetchUserRole();
+    }
+  }, [userId]);
 
   const fetchUserDiscussions = async () => {
     if (!userId) return;
@@ -112,7 +115,7 @@ const Profile = () => {
     }
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -162,21 +165,45 @@ const Profile = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Profile Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Avatar className="h-24 w-24">
+        <Card className="mb-8 overflow-hidden">
+          {/* Profile Banner */}
+          <ProfileBanner 
+            bannerType={profile.banner_type}
+            bannerValue={profile.banner_value}
+            className="h-32 md:h-48"
+          />
+          
+          <CardContent className="p-8 relative">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 -mt-16 md:-mt-12">
+              <Avatar className="h-24 w-24 border-4 border-white bg-white">
+                <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 text-center md:text-left">
+              <div className="flex-1 text-center md:text-left mt-4 md:mt-0">
                 <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                      {displayName}
+                      {isOwnProfile && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditModalOpen(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Profile
+                        </Button>
+                      )}
+                    </h1>
                     {profile.username && (
                       <p className="text-gray-500">@{profile.username}</p>
+                    )}
+                    {profile.status_message && (
+                      <p className="text-gray-700 mt-2 italic">"{profile.status_message}"</p>
                     )}
                   </div>
                   
@@ -278,11 +305,13 @@ const Profile = () => {
                       author: displayName,
                       authorId: userId,
                       authorInitials: initials,
+                      authorAvatarUrl: profile.avatar_url,
                       createdAt: new Date(discussion.created_at).toLocaleDateString(),
                       tags,
                       repliesCount: discussion.replies_count,
                       likesCount: discussion.likes_count,
-                      isLiked: false
+                      isLiked: false,
+                      statusMessage: profile.status_message
                     }}
                     onLike={() => {}}
                   />
@@ -311,6 +340,14 @@ const Profile = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Profile Modal */}
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          profile={profile}
+          onProfileUpdate={updateProfile}
+        />
       </main>
     </div>
   );

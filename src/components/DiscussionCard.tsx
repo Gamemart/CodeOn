@@ -3,7 +3,7 @@ import { Heart, MessageCircle, Edit, Trash2, MoreHorizontal } from 'lucide-react
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
@@ -18,11 +18,13 @@ interface Discussion {
   author: string;
   authorId?: string;
   authorInitials: string;
+  authorAvatarUrl?: string;
   createdAt: string;
   tags: string[];
   repliesCount: number;
   likesCount: number;
   isLiked: boolean;
+  statusMessage?: string;
 }
 
 interface DiscussionCardProps {
@@ -74,21 +76,27 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
+              <AvatarImage src={discussion.authorAvatarUrl} />
               <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
                 {discussion.authorInitials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex items-center gap-2">
-              <span 
-                className="font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
-                onClick={onAuthorClick}
-              >
-                {discussion.author}
-              </span>
-              {discussion.authorId && (
-                <CustomRoleBadge userId={discussion.authorId} />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span 
+                  className="font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
+                  onClick={onAuthorClick}
+                >
+                  {discussion.author}
+                </span>
+                {discussion.authorId && (
+                  <CustomRoleBadge userId={discussion.authorId} />
+                )}
+                <span className="text-gray-500 text-sm">• {discussion.createdAt}</span>
+              </div>
+              {discussion.statusMessage && (
+                <p className="text-xs text-gray-600 italic mt-1">"{discussion.statusMessage}"</p>
               )}
-              <span className="text-gray-500 text-sm">• {discussion.createdAt}</span>
             </div>
           </div>
           
