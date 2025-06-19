@@ -284,7 +284,6 @@ const Profile = () => {
                       likesCount: discussion.likes_count,
                       isLiked: false
                     }}
-                    onReply={() => {}}
                     onLike={() => {}}
                   />
                 );

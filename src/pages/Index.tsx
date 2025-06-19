@@ -256,7 +256,6 @@ const Index = () => {
                         likesCount: discussion.likes_count,
                         isLiked: discussion.user_liked || false
                       }}
-                      onReply={() => {}} // No longer needed, handled in ReplySection
                       onLike={handleLike}
                       onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
                     />

@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
+import ReplySection from '@/components/ReplySection';
 
 interface Discussion {
   id: string;
@@ -23,12 +24,11 @@ interface Discussion {
 
 interface DiscussionCardProps {
   discussion: Discussion;
-  onReply: (discussionId: string) => void;
   onLike: (discussionId: string) => void;
   onAuthorClick?: () => void;
 }
 
-const DiscussionCard = ({ discussion, onReply, onLike, onAuthorClick }: DiscussionCardProps) => {
+const DiscussionCard = ({ discussion, onLike, onAuthorClick }: DiscussionCardProps) => {
   return (
     <Card className="hover:shadow-md transition-shadow bg-white/80 backdrop-blur-sm border border-white/20">
       <CardHeader className="pb-3">
@@ -81,16 +81,6 @@ const DiscussionCard = ({ discussion, onReply, onLike, onAuthorClick }: Discussi
               <Heart className={`h-4 w-4 ${discussion.isLiked ? 'fill-current' : ''}`} />
               <span className="text-sm">{discussion.likesCount}</span>
             </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onReply(discussion.id)}
-              className="flex items-center gap-1 text-gray-500 hover:text-blue-500"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span className="text-sm">{discussion.repliesCount}</span>
-            </Button>
           </div>
           
           <Button
@@ -101,6 +91,9 @@ const DiscussionCard = ({ discussion, onReply, onLike, onAuthorClick }: Discussi
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
+
+        {/* Reply Section */}
+        <ReplySection discussionId={discussion.id} />
       </CardContent>
     </Card>
   );
