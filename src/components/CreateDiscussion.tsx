@@ -15,7 +15,7 @@ interface CreateDiscussionProps {
     title: string;
     body: string;
     tags: string[];
-    image?: File;
+    images?: File[];
   }) => void;
 }
 
@@ -27,8 +27,8 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   const [body, setBody] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDisplayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
@@ -46,14 +46,30 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = Array.from(event.target.files || []);
+    
+    if (files.length === 0) return;
+
+    // Check if adding these files would exceed the limit
+    if (selectedImages.length + files.length > 10) {
+      toast({
+        title: "Too many images",
+        description: "You can only upload up to 10 images per post.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const validFiles: File[] = [];
+    const newPreviews: string[] = [];
+
+    files.forEach(file => {
       // Check file type
-      const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+      const validTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/webp'];
       if (!validTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: "Please select a PNG, JPG, or JPEG image.",
+          description: `${file.name} is not a supported image format.`,
           variant: "destructive"
         });
         return;
@@ -63,29 +79,31 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
-          description: "Please select an image smaller than 5MB.",
+          description: `${file.name} is larger than 5MB.`,
           variant: "destructive"
         });
         return;
       }
 
-      setSelectedImage(file);
+      validFiles.push(file);
       
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        newPreviews.push(e.target?.result as string);
+        if (newPreviews.length === validFiles.length) {
+          setImagePreviews(prev => [...prev, ...newPreviews]);
+        }
       };
       reader.readAsDataURL(file);
-    }
+    });
+
+    setSelectedImages(prev => [...prev, ...validFiles]);
   };
 
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleRemoveImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -103,7 +121,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
       title: title.trim() || 'Untitled Discussion',
       body: body.trim(),
       tags,
-      image: selectedImage || undefined
+      images: selectedImages.length > 0 ? selectedImages : undefined
     });
 
     // Reset form
@@ -111,8 +129,8 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     setBody('');
     setTags([]);
     setTagInput('');
-    setSelectedImage(null);
-    setImagePreview(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
     setIsExpanded(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -144,30 +162,45 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
               ) : (
                 <>
                   <Textarea
-                    placeholder="What's on your mind right now?"
+                    placeholder="Share your thoughts, ask questions, or start a discussion... 
+
+💡 Tips:
+• Be clear and specific about what you want to discuss
+• Use tags to help others find your post
+• Add images to make your post more engaging
+• Be respectful and constructive in your communication"
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
-                    className="min-h-[80px] sm:min-h-[100px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-500 focus:ring-0 focus:outline-none p-0"
+                    className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
                     autoFocus
                   />
 
-                  {/* Image Preview */}
-                  {imagePreview && (
-                    <div className="relative inline-block">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        className="max-w-full max-h-48 rounded-lg object-cover"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRemoveImage}
-                        className="absolute top-2 right-2 h-6 w-6 p-0 bg-black/50 text-white hover:bg-black/70 rounded-full"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                  {/* Image Grid Display */}
+                  {imagePreviews.length > 0 && (
+                    <div className={`grid gap-2 ${
+                      imagePreviews.length === 1 ? 'grid-cols-1' :
+                      imagePreviews.length === 2 ? 'grid-cols-2' :
+                      imagePreviews.length === 3 ? 'grid-cols-3' :
+                      'grid-cols-2 sm:grid-cols-3'
+                    }`}>
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={preview} 
+                            alt={`Preview ${index + 1}`} 
+                            className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute top-2 right-2 h-6 w-6 p-0 bg-black/50 text-white hover:bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   )}
                   
@@ -195,7 +228,8 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                         type="file"
                         ref={fileInputRef}
                         onChange={handleImageUpload}
-                        accept="image/png,image/jpg,image/jpeg"
+                        accept="image/png,image/jpg,image/jpeg,image/gif,image/webp"
+                        multiple
                         className="hidden"
                       />
                       <Button 
@@ -204,6 +238,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                         size="sm" 
                         onClick={() => fileInputRef.current?.click()}
                         className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2"
+                        disabled={selectedImages.length >= 10}
                       >
                         <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>

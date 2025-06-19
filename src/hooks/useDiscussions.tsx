@@ -109,7 +109,7 @@ export const useDiscussions = () => {
     title: string;
     body: string;
     tags: string[];
-    image?: File;
+    images?: File[];
   }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -142,11 +142,14 @@ export const useDiscussions = () => {
         if (tagsError) throw tagsError;
       }
 
-      // Handle image upload if present
-      if (newDiscussion.image) {
-        console.log('Image upload functionality would be implemented here with Supabase Storage');
-        // This would require setting up Supabase Storage bucket
-        // For now, we'll just log that an image was provided
+      // Handle multiple images upload if present
+      if (newDiscussion.images && newDiscussion.images.length > 0) {
+        console.log(`Uploading ${newDiscussion.images.length} images for discussion ${discussion.id}`);
+        // This would require setting up Supabase Storage bucket for discussion images
+        // For now, we'll just log that images were provided
+        newDiscussion.images.forEach((image, index) => {
+          console.log(`Image ${index + 1}: ${image.name} (${image.size} bytes)`);
+        });
       }
 
       toast({
