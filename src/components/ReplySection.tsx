@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, User, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, User, Clock, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,9 +21,10 @@ interface Reply {
 
 interface ReplySectionProps {
   discussionId: string;
+  onClose?: () => void;
 }
 
-const ReplySection = ({ discussionId }: ReplySectionProps) => {
+const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
   const [replies, setReplies] = useState<Reply[]>([]);
   const [newReply, setNewReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,6 +197,20 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
                   View All {replies.length} Replies
                 </>
               )}
+            </Button>
+          </div>
+        )}
+
+        {/* Close Replies Button */}
+        {onClose && (
+          <div className="flex justify-center pt-4 border-t border-gray-100">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-700"
+            >
+              <X className="h-4 w-4" />
+              Close Replies
             </Button>
           </div>
         )}

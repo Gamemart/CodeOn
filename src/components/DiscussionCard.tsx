@@ -64,6 +64,10 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
     setShowReplies(true);
   };
 
+  const handleCloseReplies = () => {
+    setShowReplies(false);
+  };
+
   return (
     <Card className="border border-gray-200 bg-white">
       <CardContent className="p-6">
@@ -158,7 +162,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         {/* Reply Section */}
         {showReplies && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <ReplySection discussionId={discussion.id} />
+            <ReplySection discussionId={discussion.id} onClose={handleCloseReplies} />
           </div>
         )}
       </CardContent>
