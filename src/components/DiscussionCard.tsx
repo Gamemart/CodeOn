@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,6 +40,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   const { user } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(discussion.title);
   const [editBody, setEditBody] = useState(discussion.body);
   const [editTags, setEditTags] = useState(discussion.tags.join(', '));
   const [showReplies, setShowReplies] = useState(false);
@@ -47,6 +49,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
   const handleEdit = () => {
     setIsEditing(true);
+    setEditTitle(discussion.title);
     setEditBody(discussion.body);
     setEditTags(discussion.tags.join(', '));
   };
@@ -59,7 +62,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         .filter(tag => tag.length > 0);
       
       onEdit(discussion.id, {
-        title: discussion.title, // Keep the original title
+        title: editTitle,
         body: editBody,
         tags: tagsArray
       });
@@ -69,6 +72,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setEditTitle(discussion.title);
     setEditBody(discussion.body);
     setEditTags(discussion.tags.join(', '));
   };
@@ -156,7 +160,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 onClick={handleSaveEdit}
                 size="sm"
                 className="h-6 w-6 sm:h-8 sm:w-8 p-0"
-                disabled={!editBody.trim()}
+                disabled={!editTitle.trim() || !editBody.trim()}
               >
                 <Check className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -176,6 +180,14 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         <div className="mb-3 sm:mb-4">
           {isEditing ? (
             <div className="space-y-3">
+              {/* Title Edit */}
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Edit title..."
+                className="text-sm sm:text-base lg:text-lg font-semibold"
+              />
+              
               {/* Body Edit */}
               <Textarea
                 value={editBody}
