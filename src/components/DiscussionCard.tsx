@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Heart, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +60,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
   return (
     <Card className="bg-white border border-gray-200 shadow-sm">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
@@ -113,12 +112,12 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
       </CardHeader>
       
       <CardContent className="pt-0">
-        <p className="text-gray-700 mb-4 whitespace-pre-wrap">
+        <p className="text-gray-700 mb-3 whitespace-pre-wrap">
           {discussion.body}
         </p>
         
         {discussion.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-3">
             {discussion.tags.map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
                 {tag}
@@ -127,23 +126,18 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           </div>
         )}
         
-        <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
+        <div className="flex items-center pt-2 border-t border-gray-100">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onLike(discussion.id)}
-            className={`flex items-center gap-2 p-0 h-auto ${
+            className={`flex items-center gap-2 px-3 py-1 h-auto ${
               discussion.isLiked ? 'text-red-500' : 'text-gray-500'
             } hover:text-red-500`}
           >
             <Heart className={`h-4 w-4 ${discussion.isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm">{discussion.likesCount}</span>
           </Button>
-          
-          <div className="flex items-center gap-2 text-gray-500">
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-sm">{discussion.repliesCount} replies</span>
-          </div>
         </div>
 
         <ReplySection discussionId={discussion.id} />
