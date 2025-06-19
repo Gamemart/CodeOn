@@ -11,7 +11,7 @@ interface Profile {
   banner_type: string | null;
   banner_value: string | null;
   status_message: string | null;
-  profile_alignment: string | null;
+  profile_alignment?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,7 +40,14 @@ export const useProfile = (userId?: string) => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Ensure profile_alignment has a default value if not set
+      const profileData = {
+        ...data,
+        profile_alignment: data.profile_alignment || 'left'
+      };
+      
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
