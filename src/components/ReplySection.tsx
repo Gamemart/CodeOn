@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Send, User, Clock } from 'lucide-react';
+import { MessageCircle, Send, User, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +29,9 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
   const [newReply, setNewReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAllReplies, setShowAllReplies] = useState(false);
+
+  const REPLIES_LIMIT = 5;
 
   useEffect(() => {
     fetchReplies();
@@ -119,6 +122,10 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
     return date.toLocaleDateString();
   };
 
+  // Get replies to display based on showAllReplies state
+  const displayedReplies = showAllReplies ? replies : replies.slice(-REPLIES_LIMIT);
+  const hasMoreReplies = replies.length > REPLIES_LIMIT;
+
   return (
     <div className="mt-4 space-y-4">
       <Button
@@ -152,7 +159,7 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
 
           {/* Replies List */}
           <div className="space-y-3">
-            {replies.map((reply) => {
+            {displayedReplies.map((reply) => {
               const authorName = reply.profiles?.full_name || 
                                reply.profiles?.username || 
                                'Anonymous User';
@@ -182,6 +189,29 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
                 </Card>
               );
             })}
+
+            {/* View All Replies Toggle Button */}
+            {hasMoreReplies && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllReplies(!showAllReplies)}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                >
+                  {showAllReplies ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Show Recent Replies
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      View All {replies.length} Replies
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
