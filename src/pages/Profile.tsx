@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -88,10 +89,10 @@ const Profile = () => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading profile...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-slate-300">Loading profile...</p>
         </div>
       </div>
     );
@@ -99,11 +100,11 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900 flex items-center justify-center">
         <div className="text-center">
-          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">User not found</h3>
-          <Button onClick={() => navigate('/')}>
+          <User className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">User not found</h3>
+          <Button onClick={() => navigate('/')} variant="outline" className="border-slate-700 text-slate-300">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
@@ -118,14 +119,14 @@ const Profile = () => {
   const canModerate = userRole === 'admin' || userRole === 'moderator';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200">
+      <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+            className="flex items-center gap-2 text-slate-300 hover:text-purple-400 hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Discussions
@@ -135,92 +136,107 @@ const Profile = () => {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Profile Header */}
-        <Card className="mb-8 overflow-hidden">
+        {/* Profile Header - Discord Gaming Style */}
+        <Card className="mb-8 overflow-hidden bg-slate-800/50 border-slate-700 shadow-2xl">
           {/* Profile Banner */}
           <ProfileBanner 
             bannerType={profile.banner_type}
             bannerValue={profile.banner_value}
-            className="h-32 md:h-48"
+            className="h-40 md:h-56"
           />
           
-          <CardContent className="p-8 relative">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 -mt-16 md:-mt-12">
-              <Avatar className="h-24 w-24 border-4 border-white bg-white">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 text-center md:text-left mt-4 md:mt-0">
-                <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                      {displayName}
-                      {isOwnProfile && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditModalOpen(true)}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Profile
-                        </Button>
-                      )}
-                    </h1>
-                    {profile.username && (
-                      <p className="text-gray-500">@{profile.username}</p>
-                    )}
-                    {profile.status_message && (
-                      <p className="text-gray-700 mt-2 italic">"{profile.status_message}"</p>
-                    )}
-                  </div>
+          <CardContent className="p-0 relative">
+            {/* Avatar positioned over banner */}
+            <div className="relative px-8 pb-8">
+              <div className="flex items-end -mt-16 mb-6">
+                <div className="relative">
+                  <Avatar className="h-32 w-32 border-8 border-slate-800 bg-slate-800 shadow-2xl">
+                    <AvatarImage src={profile.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-3xl font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
                   
-                  <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
-                    <Badge variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}>
-                      <Shield className="h-3 w-3 mr-1" />
-                      {userRoleData}
-                    </Badge>
-                    {userId && <CustomRoleBadge userId={userId} />}
+                  {/* Edit Profile Icon - Bottom Left of Avatar */}
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="absolute -bottom-2 -left-2 h-10 w-10 rounded-full bg-slate-700 border-slate-600 hover:bg-slate-600 text-slate-300 hover:text-white shadow-lg"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* User Info Section */}
+              <div className="space-y-4">
+                {/* Name and Status */}
+                <div>
+                  <h1 className="text-4xl font-bold text-white mb-1">{displayName}</h1>
+                  {profile.username && (
+                    <p className="text-slate-400 text-lg">@{profile.username}</p>
+                  )}
+                  {profile.status_message && (
+                    <div className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                      <p className="text-slate-300 italic">"{profile.status_message}"</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Badges */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge 
+                    variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}
+                    className="text-sm font-semibold"
+                  >
+                    <Shield className="h-3 w-3 mr-1" />
+                    {userRoleData.toUpperCase()}
+                  </Badge>
+                  {userId && <CustomRoleBadge userId={userId} />}
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
+                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
+                    <div className="text-2xl font-bold text-white">{followers.length}</div>
+                    <div className="text-sm text-slate-400">Followers</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
+                    <div className="text-2xl font-bold text-white">{following.length}</div>
+                    <div className="text-sm text-slate-400">Following</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
+                    <div className="text-2xl font-bold text-white">{discussions.length}</div>
+                    <div className="text-sm text-slate-400">Posts</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
+                    <div className="text-sm text-slate-400">Joined</div>
+                    <div className="text-sm font-medium text-white">{new Date(profile.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-gray-500 mb-6">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{followers.length} followers</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{following.length} following</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{discussions.length} discussions</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-
+                {/* Action Buttons */}
                 {!isOwnProfile && currentUser && (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3 pt-4">
                     <Button
                       onClick={toggleFollow}
                       variant={isFollowing ? "outline" : "default"}
-                      className="flex items-center gap-2"
+                      className={isFollowing 
+                        ? "border-slate-600 text-slate-300 hover:bg-slate-700" 
+                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                      }
                     >
                       {isFollowing ? (
                         <>
-                          <UserMinus className="h-4 w-4" />
+                          <UserMinus className="h-4 w-4 mr-2" />
                           Unfollow
                         </>
                       ) : (
                         <>
-                          <UserPlus className="h-4 w-4" />
+                          <UserPlus className="h-4 w-4 mr-2" />
                           Follow
                         </>
                       )}
@@ -232,7 +248,7 @@ const Profile = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => moderateUser(userId!, 'ban')}
-                          className="text-red-600 hover:text-red-700"
+                          className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
                         >
                           <Ban className="h-4 w-4 mr-1" />
                           Ban
@@ -241,7 +257,7 @@ const Profile = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => moderateUser(userId!, 'mute')}
-                          className="text-orange-600 hover:text-orange-700"
+                          className="border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white"
                         >
                           <VolumeX className="h-4 w-4 mr-1" />
                           Mute
@@ -257,9 +273,13 @@ const Profile = () => {
 
         {/* Content Tabs */}
         <Tabs defaultValue="discussions" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="discussions">Discussions</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border-slate-700">
+            <TabsTrigger value="discussions" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Discussions
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Activity
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="discussions" className="space-y-4">
@@ -289,11 +309,11 @@ const Profile = () => {
                 );
               })
             ) : (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700">
                 <CardContent className="text-center py-12">
-                  <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions yet</h3>
-                  <p className="text-gray-500">
+                  <MessageCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">No discussions yet</h3>
+                  <p className="text-slate-400">
                     {isOwnProfile ? "Start a discussion to see it here!" : "This user hasn't created any discussions yet."}
                   </p>
                 </CardContent>
@@ -302,11 +322,11 @@ const Profile = () => {
           </TabsContent>
 
           <TabsContent value="activity">
-            <Card>
+            <Card className="bg-slate-800/50 border-slate-700">
               <CardContent className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Activity Feed</h3>
-                <p className="text-gray-500">Activity tracking coming soon!</p>
+                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">Activity Feed</h3>
+                <p className="text-slate-400">Activity tracking coming soon!</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -325,3 +345,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
