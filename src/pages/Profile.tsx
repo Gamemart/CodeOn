@@ -28,6 +28,19 @@ interface Discussion {
   discussion_tags: { tag: string }[];
 }
 
+interface Profile {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  banner_type: string | null;
+  banner_value: string | null;
+  status_message: string | null;
+  profile_alignment?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const Profile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -200,16 +213,7 @@ const Profile = () => {
                 <div>
                   <div className={`flex ${getFlexAlignment()} items-center gap-3 mb-1`}>
                     <h1 className="text-4xl font-bold text-gray-900">{displayName}</h1>
-                    {/* Role Badge next to name */}
-                    {userRoleData !== 'user' && (
-                      <Badge 
-                        variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}
-                        className="text-sm font-semibold"
-                      >
-                        <Shield className="h-3 w-3 mr-1" />
-                        {userRoleData.toUpperCase()}
-                      </Badge>
-                    )}
+                    {/* Only show custom role badge, not admin/moderator badges */}
                     {userId && <CustomRoleBadge userId={userId} />}
                   </div>
                   {profile.username && (
