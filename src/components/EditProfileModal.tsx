@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Palette, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Palette, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ interface Profile {
   banner_type: string | null;
   banner_value: string | null;
   status_message: string | null;
+  profile_alignment: string | null;
 }
 
 interface EditProfileModalProps {
@@ -36,7 +38,8 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
     full_name: '',
     status_message: '',
     banner_type: 'color',
-    banner_value: '#3B82F6'
+    banner_value: '#3B82F6',
+    profile_alignment: 'left'
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -50,7 +53,8 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
         full_name: profile.full_name || '',
         status_message: profile.status_message || '',
         banner_type: profile.banner_type || 'color',
-        banner_value: profile.banner_value || '#3B82F6'
+        banner_value: profile.banner_value || '#3B82F6',
+        profile_alignment: profile.profile_alignment || 'left'
       });
       setAvatarPreview(profile.avatar_url);
     }
@@ -129,6 +133,7 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
         banner_type: formData.banner_type,
         banner_value: bannerValue,
         status_message: formData.status_message,
+        profile_alignment: formData.profile_alignment,
         updated_at: new Date().toISOString()
       };
 
@@ -177,6 +182,12 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
     '#6366F1', '#F97316', '#14B8A6', '#A855F7'
   ];
 
+  const alignmentOptions = [
+    { value: 'left', label: 'Left', icon: AlignLeft },
+    { value: 'center', label: 'Center', icon: AlignCenter },
+    { value: 'right', label: 'Right', icon: AlignRight }
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -208,19 +219,44 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
             </div>
 
             <div>
-              <Label htmlFor="status_message">Status Message</Label>
+              <Label htmlFor="status_message">Bio</Label>
               <Textarea
                 id="status_message"
                 value={formData.status_message}
                 onChange={(e) => setFormData(prev => ({ ...prev, status_message: e.target.value }))}
-                placeholder="What's on your mind?"
+                placeholder="Tell us about yourself..."
                 maxLength={150}
                 className="resize-none"
-                rows={2}
+                rows={3}
               />
               <p className="text-xs text-gray-500 mt-1">
                 {formData.status_message.length}/150 characters
               </p>
+            </div>
+
+            {/* Profile Alignment */}
+            <div>
+              <Label>Profile Info Alignment</Label>
+              <RadioGroup
+                value={formData.profile_alignment}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, profile_alignment: value }))}
+                className="mt-2"
+              >
+                <div className="grid grid-cols-3 gap-4">
+                  {alignmentOptions.map((option) => {
+                    const IconComponent = option.icon;
+                    return (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.value} id={option.value} />
+                        <Label htmlFor={option.value} className="flex items-center gap-2 cursor-pointer">
+                          <IconComponent className="h-4 w-4" />
+                          {option.label}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </RadioGroup>
             </div>
           </div>
 

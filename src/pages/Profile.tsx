@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -87,7 +88,7 @@ const Profile = () => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
@@ -98,7 +99,7 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">User not found</h3>
@@ -115,9 +116,33 @@ const Profile = () => {
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
   const isOwnProfile = currentUser?.id === userId;
   const canModerate = userRole === 'admin' || userRole === 'moderator';
+  const profileAlignment = profile.profile_alignment || 'left';
+
+  // Get alignment classes
+  const getAlignmentClasses = () => {
+    switch (profileAlignment) {
+      case 'center':
+        return 'text-center items-center';
+      case 'right':
+        return 'text-right items-end';
+      default:
+        return 'text-left items-start';
+    }
+  };
+
+  const getFlexAlignment = () => {
+    switch (profileAlignment) {
+      case 'center':
+        return 'justify-center';
+      case 'right':
+        return 'justify-end';
+      default:
+        return 'justify-start';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 transition-all duration-700 ease-in-out">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -134,7 +159,7 @@ const Profile = () => {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Profile Header - White Theme */}
+        {/* Profile Header */}
         <Card className="mb-8 overflow-hidden bg-white border-gray-200 shadow-lg">
           {/* Profile Banner */}
           <ProfileBanner 
@@ -146,7 +171,7 @@ const Profile = () => {
           <CardContent className="p-0 relative">
             {/* Avatar positioned over banner */}
             <div className="relative px-8 pb-8">
-              <div className="flex items-end -mt-16 mb-6">
+              <div className={`flex ${getFlexAlignment()} -mt-16 mb-6`}>
                 <div className="relative">
                   <Avatar className="h-32 w-32 border-8 border-white bg-white shadow-xl">
                     <AvatarImage src={profile.avatar_url || undefined} />
@@ -170,55 +195,56 @@ const Profile = () => {
               </div>
 
               {/* User Info Section */}
-              <div className="space-y-4">
-                {/* Name and Status */}
+              <div className={`space-y-4 ${getAlignmentClasses()}`}>
+                {/* Name and Username */}
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-1">{displayName}</h1>
+                  <div className={`flex ${getFlexAlignment()} items-center gap-3 mb-1`}>
+                    <h1 className="text-4xl font-bold text-gray-900">{displayName}</h1>
+                    {/* Role Badge next to name */}
+                    {userRoleData !== 'user' && (
+                      <Badge 
+                        variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}
+                        className="text-sm font-semibold"
+                      >
+                        <Shield className="h-3 w-3 mr-1" />
+                        {userRoleData.toUpperCase()}
+                      </Badge>
+                    )}
+                    {userId && <CustomRoleBadge userId={userId} />}
+                  </div>
                   {profile.username && (
                     <p className="text-gray-600 text-lg">@{profile.username}</p>
                   )}
                   {profile.status_message && (
                     <div className="mt-3 p-3 bg-gray-100 rounded-lg border border-gray-200">
-                      <p className="text-gray-700 italic">"{profile.status_message}"</p>
+                      <p className="text-gray-700">{profile.status_message}</p>
                     </div>
                   )}
                 </div>
 
-                {/* Badges */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  <Badge 
-                    variant={userRoleData === 'admin' ? 'destructive' : userRoleData === 'moderator' ? 'default' : 'secondary'}
-                    className="text-sm font-semibold"
-                  >
-                    <Shield className="h-3 w-3 mr-1" />
-                    {userRoleData.toUpperCase()}
-                  </Badge>
-                  {userId && <CustomRoleBadge userId={userId} />}
-                </div>
-
-                {/* Stats Row - White theme */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4">
-                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
-                    <div className="text-lg font-bold text-gray-900">{followers.length}</div>
-                    <div className="text-xs text-gray-600">Followers</div>
+                {/* Stats Row */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-3 py-4 ${getFlexAlignment()}`}>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="text-xl font-bold text-gray-900">{followers.length}</div>
+                    <div className="text-sm text-gray-600">Followers</div>
                   </div>
-                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
-                    <div className="text-lg font-bold text-gray-900">{following.length}</div>
-                    <div className="text-xs text-gray-600">Following</div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="text-xl font-bold text-gray-900">{following.length}</div>
+                    <div className="text-sm text-gray-600">Following</div>
                   </div>
-                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
-                    <div className="text-lg font-bold text-gray-900">{discussions.length}</div>
-                    <div className="text-xs text-gray-600">Posts</div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="text-xl font-bold text-gray-900">{discussions.length}</div>
+                    <div className="text-sm text-gray-600">Posts</div>
                   </div>
-                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
-                    <div className="text-xs text-gray-600">Joined</div>
-                    <div className="text-xs font-medium text-gray-900">{new Date(profile.created_at).toLocaleDateString()}</div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="text-sm text-gray-600">Joined</div>
+                    <div className="text-sm font-medium text-gray-900">{new Date(profile.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
                 {!isOwnProfile && currentUser && (
-                  <div className="flex flex-wrap gap-3 pt-4">
+                  <div className={`flex flex-wrap gap-3 pt-4 ${getFlexAlignment()}`}>
                     <Button
                       onClick={toggleFollow}
                       variant={isFollowing ? "outline" : "default"}

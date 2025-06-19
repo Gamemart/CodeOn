@@ -11,6 +11,7 @@ interface Profile {
   banner_type: string | null;
   banner_value: string | null;
   status_message: string | null;
+  profile_alignment: string | null;
   created_at: string;
   updated_at: string;
 }
