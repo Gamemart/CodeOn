@@ -156,28 +156,19 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                   onClick={() => setIsExpanded(true)}
                 >
                   <div className="bg-gray-50/50 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-gray-500 hover:bg-gray-100/50 transition-colors text-sm sm:text-base">
-                    What's on your mind? Share your thoughts...
+                    What's on your mind right now?
                   </div>
                 </div>
               ) : (
                 <>
-                  {/* Title Input */}
-                  <Input
-                    placeholder="Add a title (optional)"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="border-0 bg-transparent text-lg sm:text-xl font-medium placeholder:text-gray-400 focus:ring-0 focus:outline-none p-0"
-                  />
-
-                  {/* Context/Body Textarea */}
                   <Textarea
-                    placeholder="Share your context, thoughts, or story...
+                    placeholder="Share your thoughts, ask questions, or start a discussion... 
 
-💡 Writing Tips:
-• Be clear and specific about your topic
-• Add relevant details to help others understand
-• Use tags to categorize your post
-• Include images to make it more engaging"
+💡 Tips:
+• Be clear and specific about what you want to discuss
+• Use tags to help others find your post
+• Add images to make your post more engaging
+• Be respectful and constructive in your communication"
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
@@ -213,7 +204,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     </div>
                   )}
                   
-                  {/* Tags Display */}
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 sm:gap-2">
                       {tags.map((tag) => (
@@ -229,7 +219,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     </div>
                   )}
                   
-                  {/* Action Bar */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 gap-3 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
@@ -253,8 +242,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                       >
                         <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
-                      <div className="flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-gray-400" />
+                      <div className="flex-1 sm:flex-initial">
                         <Input
                           placeholder="Add tags..."
                           value={tagInput}
