@@ -39,24 +39,36 @@ export const useDiscussions = () => {
 
   const fetchDiscussions = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('discussions')
         .select(`
           *,
           profiles!inner(id, username, full_name, status_message, avatar_url),
           discussion_tags(tag),
           replies_count:replies(count),
+          likes_count:likes(count)
+        `)
+        .order('created_at', { ascending: false });
+
+      // Only add user-specific like data if user is authenticated
+      if (user?.id) {
+        query = query.select(`
+          *,
+          profiles!inner(id, username, full_name, status_message, avatar_url),
+          discussion_tags(tag),
+          replies_count:replies(count),
           likes_count:likes(count),
           user_liked:likes!left(user_id)
-        `)
-        .eq('likes.user_id', user?.id || '')
-        .order('created_at', { ascending: false });
+        `).eq('likes.user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
       const processedDiscussions = data?.map(discussion => ({
         ...discussion,
-        user_liked: discussion.user_liked && discussion.user_liked.length > 0
+        user_liked: user?.id ? (discussion.user_liked && discussion.user_liked.length > 0) : false
       })) || [];
 
       setDiscussions(processedDiscussions);
@@ -291,7 +303,7 @@ export const useDiscussions = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchDiscussions]);
 
   return {
     discussions,
