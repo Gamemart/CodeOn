@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ export interface Discussion {
     tag: string;
   }[];
   user_liked?: boolean;
+  images?: string[];
 }
 
 export interface DiscussionWithProfile extends Discussion {
@@ -83,11 +85,20 @@ export const useDiscussions = () => {
             userLiked = !!userLikeData;
           }
 
+          // Parse images from body (for now, since we're just storing in console logs)
+          // In a real implementation, you'd store image URLs in a separate table or field
+          let images: string[] = [];
+          if (discussion.body && discussion.body.includes('Image uploaded:')) {
+            // This is a temporary implementation - in production you'd store images properly
+            images = [];
+          }
+
           return {
             ...discussion,
             replies_count: repliesCount || 0,
             likes_count: likesCount || 0,
-            user_liked: userLiked
+            user_liked: userLiked,
+            images: images
           };
         })
       );
