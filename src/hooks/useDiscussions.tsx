@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 export interface Discussion {
   id: string;
@@ -20,53 +21,55 @@ export interface Discussion {
   user_liked?: boolean;
 }
 
-export const useDiscussions = () => {
-  const [discussions, setDiscussions] = useState<Discussion[]>([]);
-  const [loading, setLoading] = useState(true);
+export interface DiscussionWithProfile extends Discussion {
+  profiles: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    status_message: string | null;
+    avatar_url: string | null;
+  };
+}
 
-  const fetchDiscussions = async () => {
+export const useDiscussions = () => {
+  const [discussions, setDiscussions] = useState<DiscussionWithProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  const fetchDiscussions = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('discussions')
         .select(`
           *,
-          profiles!inner(username, full_name),
-          discussion_tags (tag)
+          profiles!inner(id, username, full_name, status_message, avatar_url),
+          discussion_tags(tag),
+          replies_count:replies(count),
+          likes_count:discussion_likes(count),
+          user_liked:discussion_likes!left(user_id)
         `)
+        .eq('discussion_likes.user_id', user?.id || '')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Check which discussions the current user has liked
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && data) {
-        const { data: likes } = await supabase
-          .from('likes')
-          .select('discussion_id')
-          .eq('user_id', user.id);
+      const processedDiscussions = data?.map(discussion => ({
+        ...discussion,
+        user_liked: discussion.user_liked && discussion.user_liked.length > 0
+      })) || [];
 
-        const likedDiscussionIds = new Set(likes?.map(like => like.discussion_id) || []);
-        
-        const discussionsWithLikes = data.map(discussion => ({
-          ...discussion,
-          user_liked: likedDiscussionIds.has(discussion.id)
-        }));
-
-        setDiscussions(discussionsWithLikes);
-      } else {
-        setDiscussions(data || []);
-      }
-    } catch (error: any) {
+      setDiscussions(processedDiscussions);
+    } catch (error) {
       console.error('Error fetching discussions:', error);
       toast({
-        title: "Error loading discussions",
-        description: error.message,
+        title: "Error",
+        description: "Failed to load discussions. Please try again.",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const createDiscussion = async (newDiscussion: {
     title: string;
@@ -295,7 +298,6 @@ export const useDiscussions = () => {
     createDiscussion,
     editDiscussion,
     deleteDiscussion,
-    toggleLike,
-    refetch: fetchDiscussions
+    toggleLike
   };
 };
