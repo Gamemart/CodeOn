@@ -333,7 +333,7 @@ export type Database = {
     }
     Functions: {
       get_user_role: {
-        Args: { user_uuid: string }
+        Args: Record<PropertyKey, never> | { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
       is_user_moderated: {
