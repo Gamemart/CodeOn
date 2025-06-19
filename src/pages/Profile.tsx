@@ -16,7 +16,6 @@ import { useFollows } from '@/hooks/useFollows';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from '@/hooks/use-toast';
-import { getInlineBackgroundStyle } from '@/utils/colorExtractor';
 
 interface Discussion {
   id: string;
@@ -88,10 +87,10 @@ const Profile = () => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-slate-300">Loading profile...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
     );
@@ -99,11 +98,11 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-purple-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <User className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">User not found</h3>
-          <Button onClick={() => navigate('/')} variant="outline" className="border-slate-700 text-slate-300">
+          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">User not found</h3>
+          <Button onClick={() => navigate('/')} variant="outline" className="border-gray-300 text-gray-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
@@ -117,21 +116,15 @@ const Profile = () => {
   const isOwnProfile = currentUser?.id === userId;
   const canModerate = userRole === 'admin' || userRole === 'moderator';
 
-  // Get dynamic background style based on banner
-  const dynamicBackgroundStyle = getInlineBackgroundStyle(profile.banner_type, profile.banner_value);
-
   return (
-    <div 
-      className="min-h-screen transition-all duration-700 ease-in-out"
-      style={dynamicBackgroundStyle}
-    >
+    <div className="min-h-screen bg-gray-50 transition-all duration-700 ease-in-out">
       {/* Header */}
-      <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-700">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-slate-300 hover:text-purple-400 hover:bg-slate-800"
+            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Discussions
@@ -141,8 +134,8 @@ const Profile = () => {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Profile Header - Discord Gaming Style */}
-        <Card className="mb-8 overflow-hidden bg-slate-800/50 border-slate-700 shadow-2xl">
+        {/* Profile Header - White Theme */}
+        <Card className="mb-8 overflow-hidden bg-white border-gray-200 shadow-lg">
           {/* Profile Banner */}
           <ProfileBanner 
             bannerType={profile.banner_type}
@@ -155,9 +148,9 @@ const Profile = () => {
             <div className="relative px-8 pb-8">
               <div className="flex items-end -mt-16 mb-6">
                 <div className="relative">
-                  <Avatar className="h-32 w-32 border-8 border-slate-800 bg-slate-800 shadow-2xl">
+                  <Avatar className="h-32 w-32 border-8 border-white bg-white shadow-xl">
                     <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-3xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-bold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -168,7 +161,7 @@ const Profile = () => {
                       variant="outline"
                       size="icon"
                       onClick={() => setIsEditModalOpen(true)}
-                      className="absolute -bottom-2 -left-2 h-10 w-10 rounded-full bg-slate-700 border-slate-600 hover:bg-slate-600 text-slate-300 hover:text-white shadow-lg"
+                      className="absolute -bottom-2 -left-2 h-10 w-10 rounded-full bg-white border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-900 shadow-lg"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -180,13 +173,13 @@ const Profile = () => {
               <div className="space-y-4">
                 {/* Name and Status */}
                 <div>
-                  <h1 className="text-4xl font-bold text-white mb-1">{displayName}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-1">{displayName}</h1>
                   {profile.username && (
-                    <p className="text-slate-400 text-lg">@{profile.username}</p>
+                    <p className="text-gray-600 text-lg">@{profile.username}</p>
                   )}
                   {profile.status_message && (
-                    <div className="mt-3 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                      <p className="text-slate-300 italic">"{profile.status_message}"</p>
+                    <div className="mt-3 p-3 bg-gray-100 rounded-lg border border-gray-200">
+                      <p className="text-gray-700 italic">"{profile.status_message}"</p>
                     </div>
                   )}
                 </div>
@@ -203,23 +196,23 @@ const Profile = () => {
                   {userId && <CustomRoleBadge userId={userId} />}
                 </div>
 
-                {/* Stats Row - Smaller and restored colors */}
+                {/* Stats Row - White theme */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4">
-                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
-                    <div className="text-lg font-bold text-white">{followers.length}</div>
-                    <div className="text-xs text-slate-400">Followers</div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
+                    <div className="text-lg font-bold text-gray-900">{followers.length}</div>
+                    <div className="text-xs text-gray-600">Followers</div>
                   </div>
-                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
-                    <div className="text-lg font-bold text-white">{following.length}</div>
-                    <div className="text-xs text-slate-400">Following</div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
+                    <div className="text-lg font-bold text-gray-900">{following.length}</div>
+                    <div className="text-xs text-gray-600">Following</div>
                   </div>
-                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
-                    <div className="text-lg font-bold text-white">{discussions.length}</div>
-                    <div className="text-xs text-slate-400">Posts</div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
+                    <div className="text-lg font-bold text-gray-900">{discussions.length}</div>
+                    <div className="text-xs text-gray-600">Posts</div>
                   </div>
-                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
-                    <div className="text-xs text-slate-400">Joined</div>
-                    <div className="text-xs font-medium text-white">{new Date(profile.created_at).toLocaleDateString()}</div>
+                  <div className="text-center p-2 bg-gray-100 rounded-lg border border-gray-200">
+                    <div className="text-xs text-gray-600">Joined</div>
+                    <div className="text-xs font-medium text-gray-900">{new Date(profile.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
 
@@ -230,8 +223,8 @@ const Profile = () => {
                       onClick={toggleFollow}
                       variant={isFollowing ? "outline" : "default"}
                       className={isFollowing 
-                        ? "border-slate-600 text-slate-300 hover:bg-slate-700" 
-                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                        ? "border-gray-300 text-gray-700 hover:bg-gray-100" 
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
                       }
                     >
                       {isFollowing ? (
@@ -253,7 +246,7 @@ const Profile = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => moderateUser(userId!, 'ban')}
-                          className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                          className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
                         >
                           <Ban className="h-4 w-4 mr-1" />
                           Ban
@@ -262,7 +255,7 @@ const Profile = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => moderateUser(userId!, 'mute')}
-                          className="border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white"
+                          className="border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400"
                         >
                           <VolumeX className="h-4 w-4 mr-1" />
                           Mute
@@ -278,11 +271,11 @@ const Profile = () => {
 
         {/* Content Tabs */}
         <Tabs defaultValue="discussions" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border-slate-700">
-            <TabsTrigger value="discussions" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100 border border-gray-200">
+            <TabsTrigger value="discussions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Discussions
             </TabsTrigger>
-            <TabsTrigger value="activity" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="activity" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               Activity
             </TabsTrigger>
           </TabsList>
@@ -314,11 +307,11 @@ const Profile = () => {
                 );
               })
             ) : (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-white border-gray-200">
                 <CardContent className="text-center py-12">
-                  <MessageCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-white mb-2">No discussions yet</h3>
-                  <p className="text-slate-400">
+                  <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions yet</h3>
+                  <p className="text-gray-600">
                     {isOwnProfile ? "Start a discussion to see it here!" : "This user hasn't created any discussions yet."}
                   </p>
                 </CardContent>
@@ -327,11 +320,11 @@ const Profile = () => {
           </TabsContent>
 
           <TabsContent value="activity">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="bg-white border-gray-200">
               <CardContent className="text-center py-12">
-                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">Activity Feed</h3>
-                <p className="text-slate-400">Activity tracking coming soon!</p>
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Activity Feed</h3>
+                <p className="text-gray-600">Activity tracking coming soon!</p>
               </CardContent>
             </Card>
           </TabsContent>
