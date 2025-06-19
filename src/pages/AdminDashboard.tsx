@@ -18,14 +18,9 @@ import { toast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
-  email: string;
-  profiles: {
-    username: string | null;
-    full_name: string | null;
-  } | null;
-  user_roles: {
-    role: string;
-  } | null;
+  username: string | null;
+  full_name: string | null;
+  role: string | null;
 }
 
 interface CustomRole {
@@ -44,10 +39,8 @@ interface ModerationAction {
   expires_at: string | null;
   created_at: string;
   is_active: boolean;
-  profiles: {
-    username: string | null;
-    full_name: string | null;
-  } | null;
+  username: string | null;
+  full_name: string | null;
 }
 
 const AdminDashboard = () => {
@@ -72,33 +65,71 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [usersResult, rolesResult, moderationResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select(`
-            id,
-            username,
-            full_name,
-            user_roles(role)
-          `),
-        supabase.from('custom_roles').select('*').order('created_at', { ascending: false }),
-        supabase
-          .from('user_moderation')
-          .select(`
-            *,
-            profiles(username, full_name)
-          `)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-      ]);
+      // Fetch users with their roles using LEFT JOIN
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          username,
+          full_name
+        `);
 
-      if (usersResult.error) throw usersResult.error;
-      if (rolesResult.error) throw rolesResult.error;
-      if (moderationResult.error) throw moderationResult.error;
+      if (usersError) throw usersError;
 
-      setUsers(usersResult.data || []);
-      setCustomRoles(rolesResult.data || []);
-      setModerationActions(moderationResult.data || []);
+      // Fetch user roles separately
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Combine users with their roles
+      const usersWithRoles = (usersData || []).map(user => ({
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        role: rolesData?.find(role => role.user_id === user.id)?.role || 'user'
+      }));
+
+      // Fetch custom roles
+      const { data: customRolesData, error: customRolesError } = await supabase
+        .from('custom_roles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (customRolesError) throw customRolesError;
+
+      // Fetch moderation actions with user profiles
+      const { data: moderationData, error: moderationError } = await supabase
+        .from('user_moderation')
+        .select(`
+          *
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (moderationError) throw moderationError;
+
+      // Get profile data for moderated users
+      const moderationWithProfiles = await Promise.all(
+        (moderationData || []).map(async (action) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, full_name')
+            .eq('id', action.user_id)
+            .single();
+
+          return {
+            ...action,
+            username: profile?.username || null,
+            full_name: profile?.full_name || null
+          };
+        })
+      );
+
+      setUsers(usersWithRoles);
+      setCustomRoles(customRolesData || []);
+      setModerationActions(moderationWithProfiles);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       toast({
@@ -144,7 +175,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: 'user' | 'moderator' | 'admin') => {
     try {
       const { error } = await supabase
         .from('user_roles')
@@ -283,9 +314,9 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {users.map((user) => {
-                    const displayName = user.profiles?.full_name || user.profiles?.username || 'Anonymous User';
+                    const displayName = user.full_name || user.username || 'Anonymous User';
                     const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
-                    const currentRole = user.user_roles?.role || 'user';
+                    const currentRole = user.role || 'user';
 
                     return (
                       <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -297,14 +328,14 @@ const AdminDashboard = () => {
                           </Avatar>
                           <div>
                             <p className="font-medium">{displayName}</p>
-                            <p className="text-sm text-gray-500">{user.profiles?.username && `@${user.profiles.username}`}</p>
+                            <p className="text-sm text-gray-500">{user.username && `@${user.username}`}</p>
                           </div>
                           <Badge variant={currentRole === 'admin' ? 'destructive' : currentRole === 'moderator' ? 'default' : 'secondary'}>
                             {currentRole}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Select value={currentRole} onValueChange={(value) => updateUserRole(user.id, value)}>
+                          <Select value={currentRole} onValueChange={(value: 'user' | 'moderator' | 'admin') => updateUserRole(user.id, value)}>
                             <SelectTrigger className="w-32">
                               <SelectValue />
                             </SelectTrigger>
@@ -433,7 +464,7 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {moderationActions.map((action) => {
-                    const displayName = action.profiles?.full_name || action.profiles?.username || 'Anonymous User';
+                    const displayName = action.full_name || action.username || 'Anonymous User';
                     
                     return (
                       <div key={action.id} className="flex items-center justify-between p-4 border rounded-lg">
