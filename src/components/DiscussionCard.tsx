@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -126,7 +127,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           </div>
         )}
         
-        <div className="flex items-center pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <Button
             variant="ghost"
             size="sm"
@@ -138,9 +139,11 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             <Heart className={`h-4 w-4 ${discussion.isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm">{discussion.likesCount}</span>
           </Button>
-        </div>
 
-        <ReplySection discussionId={discussion.id} />
+          <div className="flex-1 ml-4">
+            <ReplySection discussionId={discussion.id} />
+          </div>
+        </div>
       </CardContent>
 
       {isEditModalOpen && (
