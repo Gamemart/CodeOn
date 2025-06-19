@@ -52,21 +52,25 @@ export const useDiscussions = () => {
 
       // Only add user-specific like data if user is authenticated
       if (user?.id) {
-        query = query.select(`
-          *,
-          profiles!inner(id, username, full_name, status_message, avatar_url),
-          discussion_tags(tag),
-          replies_count:replies(count),
-          likes_count:likes(count),
-          user_liked:likes!left(user_id)
-        `).eq('likes.user_id', user.id);
+        query = supabase
+          .from('discussions')
+          .select(`
+            *,
+            profiles!inner(id, username, full_name, status_message, avatar_url),
+            discussion_tags(tag),
+            replies_count:replies(count),
+            likes_count:likes(count),
+            user_liked:likes!left(user_id)
+          `)
+          .eq('likes.user_id', user.id)
+          .order('created_at', { ascending: false });
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
 
-      const processedDiscussions = data?.map(discussion => ({
+      const processedDiscussions = data?.map((discussion: any) => ({
         ...discussion,
         user_liked: user?.id ? (discussion.user_liked && discussion.user_liked.length > 0) : false
       })) || [];
