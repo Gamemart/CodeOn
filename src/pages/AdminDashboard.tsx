@@ -1,20 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Users, Settings, ArrowLeft, Plus, Edit, Trash2, UserCheck, UserX, Ban, Volume, VolumeX } from 'lucide-react';
+import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from '@/hooks/use-toast';
+import UserManagementTab from '@/components/admin/UserManagementTab';
+import CustomRolesTab from '@/components/admin/CustomRolesTab';
+import ModerationTab from '@/components/admin/ModerationTab';
 
 interface User {
   id: string;
@@ -45,34 +41,38 @@ interface ModerationAction {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { userRole } = useUserRoles();
+  const { user, loading: authLoading } = useAuth();
+  const { userRole, loading: roleLoading } = useUserRoles();
   const [users, setUsers] = useState<User[]>([]);
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   const [moderationActions, setModerationActions] = useState<ModerationAction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newRoleName, setNewRoleName] = useState('');
-  const [newRoleDescription, setNewRoleDescription] = useState('');
-  const [newRoleColor, setNewRoleColor] = useState('#6B7280');
 
   useEffect(() => {
-    if (userRole !== 'admin' && userRole !== 'moderator') {
-      navigate('/');
+    // Wait for auth and role loading to complete
+    if (authLoading || roleLoading) return;
+
+    // Redirect if not authenticated
+    if (!user) {
+      navigate('/auth');
       return;
     }
+
+    // Redirect if not admin
+    if (userRole !== 'admin') {
+      navigate('/forbidden');
+      return;
+    }
+
     fetchData();
-  }, [userRole, navigate]);
+  }, [user, userRole, authLoading, roleLoading, navigate]);
 
   const fetchData = async () => {
     try {
-      // Fetch users with their roles using LEFT JOIN
+      // Fetch users with their roles using separate queries
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          username,
-          full_name
-        `);
+        .select('id, username, full_name');
 
       if (usersError) throw usersError;
 
@@ -99,12 +99,10 @@ const AdminDashboard = () => {
 
       if (customRolesError) throw customRolesError;
 
-      // Fetch moderation actions with user profiles
+      // Fetch moderation actions
       const { data: moderationData, error: moderationError } = await supabase
         .from('user_moderation')
-        .select(`
-          *
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -139,39 +137,6 @@ const AdminDashboard = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const createCustomRole = async () => {
-    if (!newRoleName.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('custom_roles')
-        .insert({
-          name: newRoleName.trim(),
-          description: newRoleDescription.trim() || null,
-          color: newRoleColor,
-          created_by: user!.id
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Role created",
-        description: `Custom role "${newRoleName}" has been created`
-      });
-
-      setNewRoleName('');
-      setNewRoleDescription('');
-      setNewRoleColor('#6B7280');
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error creating role",
-        description: error.message,
-        variant: "destructive"
-      });
     }
   };
 
@@ -230,6 +195,36 @@ const AdminDashboard = () => {
     }
   };
 
+  const createCustomRole = async (name: string, description: string, color: string) => {
+    if (!name.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_roles')
+        .insert({
+          name: name.trim(),
+          description: description.trim() || null,
+          color: color,
+          created_by: user!.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Role created",
+        description: `Custom role "${name}" has been created`
+      });
+
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error creating role",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const deactivateModerationAction = async (actionId: string) => {
     try {
       const { error } = await supabase
@@ -254,7 +249,8 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while checking auth and role
+  if (authLoading || roleLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -268,8 +264,8 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -286,7 +282,7 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-                  <p className="text-sm text-gray-500">Manage users and system settings</p>
+                  <p className="text-sm text-gray-500 hidden sm:block">Manage users and system settings</p>
                 </div>
               </div>
             </div>
@@ -295,211 +291,34 @@ const AdminDashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="roles">Custom Roles</TabsTrigger>
-            <TabsTrigger value="moderation">Moderation</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="users" className="text-sm">User Management</TabsTrigger>
+            <TabsTrigger value="roles" className="text-sm">Custom Roles</TabsTrigger>
+            <TabsTrigger value="moderation" className="text-sm">Moderation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  All Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {users.map((user) => {
-                    const displayName = user.full_name || user.username || 'Anonymous User';
-                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
-                    const currentRole = user.role || 'user';
-
-                    return (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                              {initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{displayName}</p>
-                            <p className="text-sm text-gray-500">{user.username && `@${user.username}`}</p>
-                          </div>
-                          <Badge variant={currentRole === 'admin' ? 'destructive' : currentRole === 'moderator' ? 'default' : 'secondary'}>
-                            {currentRole}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Select value={currentRole} onValueChange={(value: 'user' | 'moderator' | 'admin') => updateUserRole(user.id, value)}>
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">User</SelectItem>
-                              <SelectItem value="moderator">Moderator</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(user.id, 'ban')}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(user.id, 'mute')}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            <VolumeX className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            <UserManagementTab 
+              users={users}
+              onUpdateUserRole={updateUserRole}
+              onModerateUser={moderateUser}
+            />
           </TabsContent>
 
           <TabsContent value="roles" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Custom Roles
-                  </span>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create Role
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create Custom Role</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-sm font-medium">Role Name</label>
-                          <Input
-                            value={newRoleName}
-                            onChange={(e) => setNewRoleName(e.target.value)}
-                            placeholder="Enter role name"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Description</label>
-                          <Textarea
-                            value={newRoleDescription}
-                            onChange={(e) => setNewRoleDescription(e.target.value)}
-                            placeholder="Enter role description"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Color</label>
-                          <Input
-                            type="color"
-                            value={newRoleColor}
-                            onChange={(e) => setNewRoleColor(e.target.value)}
-                          />
-                        </div>
-                        <Button onClick={createCustomRole} className="w-full">
-                          Create Role
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {customRoles.map((role) => (
-                    <div key={role.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: role.color }}
-                        />
-                        <div>
-                          <p className="font-medium">{role.name}</p>
-                          {role.description && (
-                            <p className="text-sm text-gray-500">{role.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <CustomRolesTab 
+              customRoles={customRoles}
+              onCreateRole={createCustomRole}
+            />
           </TabsContent>
 
           <TabsContent value="moderation" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Active Moderation Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {moderationActions.map((action) => {
-                    const displayName = action.full_name || action.username || 'Anonymous User';
-                    
-                    return (
-                      <div key={action.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Badge variant={action.action_type === 'ban' ? 'destructive' : 'default'}>
-                            {action.action_type === 'ban' ? (
-                              <Ban className="h-3 w-3 mr-1" />
-                            ) : (
-                              <VolumeX className="h-3 w-3 mr-1" />
-                            )}
-                            {action.action_type}
-                          </Badge>
-                          <div>
-                            <p className="font-medium">{displayName}</p>
-                            {action.reason && (
-                              <p className="text-sm text-gray-500">Reason: {action.reason}</p>
-                            )}
-                            <p className="text-xs text-gray-400">
-                              {new Date(action.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deactivateModerationAction(action.id)}
-                        >
-                          Deactivate
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            <ModerationTab 
+              moderationActions={moderationActions}
+              onDeactivateAction={deactivateModerationAction}
+            />
           </TabsContent>
         </Tabs>
       </main>

@@ -37,12 +37,34 @@ export const useUserRoles = () => {
 
   useEffect(() => {
     fetchUserRole();
+    
+    // Set up real-time subscription for role changes
+    const subscription = supabase
+      .channel('user-roles-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'user_roles' 
+        }, 
+        () => {
+          fetchUserRole();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserRole = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setUserRole('user');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('user_roles')
@@ -57,6 +79,7 @@ export const useUserRoles = () => {
       setUserRole(data?.role || 'user');
     } catch (error) {
       console.error('Error fetching user role:', error);
+      setUserRole('user');
     } finally {
       setLoading(false);
     }
