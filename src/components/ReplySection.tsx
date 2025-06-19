@@ -61,7 +61,7 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
         .from('replies')
         .select(`
           *,
-          profiles!inner(username, full_name)
+          profiles:author_id(username, full_name)
         `)
         .eq('discussion_id', discussionId)
         .order('created_at', { ascending: true });
