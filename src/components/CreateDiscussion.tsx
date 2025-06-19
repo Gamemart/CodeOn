@@ -161,14 +161,15 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                 </div>
               ) : (
                 <>
-                  <Textarea
-                    placeholder="Share your thoughts, ask questions, or start a discussion... 
+                  <Input
+                    placeholder="Add a title for your discussion..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="text-base sm:text-lg font-medium border-0 bg-transparent focus:ring-0 focus:outline-none p-0 placeholder:text-gray-400"
+                  />
 
-💡 Tips:
-• Be clear and specific about what you want to discuss
-• Use tags to help others find your post
-• Add images to make your post more engaging
-• Be respectful and constructive in your communication"
+                  <Textarea
+                    placeholder="Share your thoughts..."
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
