@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, X, Tag } from 'lucide-react';
+import { Plus, X, Tag, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -61,14 +61,17 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
 
   if (!isOpen) {
     return (
-      <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors cursor-pointer" onClick={() => setIsOpen(true)}>
-        <CardContent className="flex items-center justify-center py-8">
+      <Card 
+        className="border-2 border-dashed border-purple-200 hover:border-purple-300 transition-colors cursor-pointer bg-transparent shadow-none" 
+        onClick={() => setIsOpen(true)}
+      >
+        <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-3">
-              <Plus className="h-6 w-6" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white mb-4 shadow-lg">
+              <Plus className="h-8 w-8" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">Start a Discussion</h3>
-            <p className="text-gray-500 text-sm">Share your thoughts with the community</p>
+            <h3 className="font-bold text-gray-900 mb-2 text-xl">Start a Discussion</h3>
+            <p className="text-gray-600">Share your thoughts with the community</p>
           </div>
         </CardContent>
       </Card>
@@ -76,49 +79,49 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   }
 
   return (
-    <Card className="border-blue-200 shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-lg font-semibold text-gray-900">Create New Discussion</CardTitle>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-xl font-bold text-gray-900">Create New Discussion</CardTitle>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(false)}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 bg-white/50 hover:bg-white/70 rounded-full"
         >
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
       
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Input
-              placeholder="Discussion title..."
+              placeholder="What's on your mind? Enter a title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+              className="border-0 bg-white/50 focus:bg-white/70 rounded-2xl h-12 text-lg font-medium placeholder:text-gray-500"
             />
           </div>
           
           <div>
             <Textarea
-              placeholder="What's on your mind? Share your thoughts, ask questions, or start a conversation..."
+              placeholder="Share your thoughts, ask questions, or start a conversation..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="min-h-[120px] border-gray-200 focus:border-blue-400 focus:ring-blue-400 resize-none"
+              className="min-h-[120px] border-0 bg-white/50 focus:bg-white/70 rounded-2xl text-lg resize-none placeholder:text-gray-500"
             />
           </div>
           
           <div>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-3">
               <div className="relative flex-1">
-                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Tag className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   placeholder="Add tags (press Enter)"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  className="pl-10 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                  className="pl-12 border-0 bg-white/50 focus:bg-white/70 rounded-2xl h-12"
                 />
               </div>
               <Button
@@ -126,6 +129,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                 variant="outline"
                 onClick={handleAddTag}
                 disabled={!tagInput.trim() || tags.length >= 5}
+                className="bg-white/50 hover:bg-white/70 border-0 rounded-2xl px-6"
               >
                 Add
               </Button>
@@ -137,7 +141,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                   <Badge 
                     key={tag} 
                     variant="secondary" 
-                    className="bg-blue-50 text-blue-700 cursor-pointer hover:bg-blue-100"
+                    className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 cursor-pointer hover:from-purple-200 hover:to-pink-200 border-0 rounded-full px-3 py-1"
                     onClick={() => handleRemoveTag(tag)}
                   >
                     #{tag}
@@ -148,17 +152,19 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
             )}
           </div>
           
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <Button 
               type="submit" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-2xl px-8 py-3 shadow-lg"
             >
+              <Send className="h-4 w-4 mr-2" />
               Post Discussion
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => setIsOpen(false)}
+              className="bg-white/50 hover:bg-white/70 border-0 rounded-2xl px-6"
             >
               Cancel
             </Button>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Send, User, Clock, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -128,25 +129,25 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
   return (
     <div className="space-y-4">
       {/* Reply Form */}
-      <form onSubmit={handleSubmitReply} className="space-y-3">
+      <form onSubmit={handleSubmitReply} className="space-y-4">
         <Textarea
           value={newReply}
           onChange={(e) => setNewReply(e.target.value)}
-          placeholder="Write a reply..."
-          className="min-h-[80px] resize-none"
+          placeholder="Write a thoughtful reply..."
+          className="min-h-[100px] resize-none border-0 bg-white/50 focus:bg-white/70 rounded-2xl text-lg"
         />
         <Button
           type="submit"
           disabled={isSubmitting || !newReply.trim()}
-          className="flex items-center gap-2"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-2xl px-6 shadow-lg"
         >
-          <Send className="h-4 w-4" />
+          <Send className="h-4 w-4 mr-2" />
           {isSubmitting ? 'Posting...' : 'Post Reply'}
         </Button>
       </form>
 
       {/* Replies List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {displayedReplies.map((reply) => {
           const authorName = reply.profiles?.full_name || 
                            reply.profiles?.username || 
@@ -154,23 +155,23 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
           const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
 
           return (
-            <Card key={reply.id} className="bg-gray-50/50">
+            <Card key={reply.id} className="bg-white/50 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs">
+                  <Avatar className="h-10 w-10 border-2 border-white shadow-md">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm font-bold">
                       {authorInitials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                      <span className="font-medium text-gray-700">{authorName}</span>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <span className="font-semibold text-gray-800">{authorName}</span>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         <span>{formatTimeAgo(reply.created_at)}</span>
                       </div>
                     </div>
-                    <p className="text-gray-700 leading-relaxed">{reply.content}</p>
+                    <p className="text-gray-800 leading-relaxed">{reply.content}</p>
                   </div>
                 </div>
               </CardContent>
@@ -184,16 +185,16 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
             <Button
               variant="ghost"
               onClick={() => setShowAllReplies(!showAllReplies)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              className="bg-white/50 hover:bg-white/70 border-0 rounded-2xl px-6 text-purple-600 font-medium"
             >
               {showAllReplies ? (
                 <>
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-4 w-4 mr-2" />
                   Show Recent Replies
                 </>
               ) : (
                 <>
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 mr-2" />
                   View All {replies.length} Replies
                 </>
               )}
@@ -203,13 +204,13 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
 
         {/* Close Replies Button */}
         {onClose && (
-          <div className="flex justify-center pt-4 border-t border-gray-100">
+          <div className="flex justify-center pt-4 border-t border-white/30">
             <Button
               variant="outline"
               onClick={onClose}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-700"
+              className="bg-white/50 hover:bg-white/70 border-0 rounded-2xl px-6 text-gray-600 font-medium"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 mr-2" />
               Close Replies
             </Button>
           </div>
