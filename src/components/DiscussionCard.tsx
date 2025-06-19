@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -61,7 +60,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   const handleShowReplies = () => {
-    setShowReplies(true);
+    setShowReplies(!showReplies);
   };
 
   const handleCloseReplies = () => {
