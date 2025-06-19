@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, Share2, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   const { user } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
 
@@ -60,18 +61,19 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow bg-white/80 backdrop-blur-sm border border-white/20">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+    <Card className="border border-gray-200 bg-white">
+      <CardContent className="p-4">
+        {/* Header with author info */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
                 {discussion.authorInitials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+            <div className="flex items-center gap-2">
               <span 
-                className="font-medium text-gray-900 cursor-pointer hover:text-blue-600 truncate" 
+                className="font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
                 onClick={onAuthorClick}
               >
                 {discussion.author}
@@ -79,7 +81,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
               {discussion.authorId && (
                 <CustomRoleBadge userId={discussion.authorId} />
               )}
-              <span className="text-sm text-gray-500 whitespace-nowrap">• {discussion.createdAt}</span>
+              <span className="text-gray-500 text-sm">• {discussion.createdAt}</span>
             </div>
           </div>
           
@@ -87,7 +89,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           {isAuthor && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -108,16 +110,19 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           )}
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 leading-tight break-words">
-          {discussion.title}
-        </h3>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <p className="text-gray-700 mb-4 leading-relaxed whitespace-pre-wrap break-words">
-          {discussion.body}
-        </p>
+        {/* Content */}
+        <div className="mb-4">
+          {discussion.title && (
+            <h3 className="font-medium text-gray-900 mb-2">
+              {discussion.title}
+            </h3>
+          )}
+          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+            {discussion.body}
+          </p>
+        </div>
         
+        {/* Tags */}
         {discussion.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {discussion.tags.map((tag, index) => (
@@ -128,32 +133,33 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           </div>
         )}
         
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-1 ${
-                discussion.isLiked ? 'text-red-500' : 'text-gray-500'
-              } hover:text-red-500`}
-            >
-              <Heart className={`h-4 w-4 ${discussion.isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm">{discussion.likesCount}</span>
-            </Button>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-500 hover:text-gray-700"
+        {/* Actions Row */}
+        <div className="flex items-center gap-6 text-gray-500">
+          <button
+            onClick={() => onLike(discussion.id)}
+            className={`flex items-center gap-2 hover:text-red-500 transition-colors ${
+              discussion.isLiked ? 'text-red-500' : ''
+            }`}
           >
-            <Share2 className="h-4 w-4" />
-          </Button>
+            <Heart className={`h-5 w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-sm font-medium">{discussion.likesCount}</span>
+          </button>
+          
+          <button
+            onClick={() => setShowReplies(!showReplies)}
+            className="flex items-center gap-2 hover:text-blue-500 transition-colors"
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="text-sm font-medium">{discussion.repliesCount}</span>
+          </button>
         </div>
 
         {/* Reply Section */}
-        <ReplySection discussionId={discussion.id} />
+        {showReplies && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <ReplySection discussionId={discussion.id} />
+          </div>
+        )}
       </CardContent>
 
       {/* Edit Modal */}
@@ -185,7 +191,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+        </AlertDialogFooter>
       </AlertDialog>
     </Card>
   );
