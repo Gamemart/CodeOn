@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -135,6 +135,7 @@ const Index = () => {
 
             {/* Profile Avatar */}
             <Avatar className="h-8 w-8">
+              <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
                 {userInitials}
               </AvatarFallback>
@@ -289,13 +290,6 @@ const Index = () => {
                 </span>
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Users
-                <span className="ml-auto bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                  2
-                </span>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
                 <Bell className="h-4 w-4 mr-3" />
                 Notifications
               </Button>
@@ -312,13 +306,13 @@ const Index = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start p-2">
                   <Avatar className="h-8 w-8 mr-3">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-left">
                     <div className="font-medium text-sm">{userDisplayName}</div>
-                    <div className="text-xs text-gray-500">Basic Member</div>
                   </div>
                 </Button>
               </DropdownMenuTrigger>

@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
-import { Plus, X, Tag, Smile, Mic } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, X, Tag, Smile, Upload, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -15,6 +15,7 @@ interface CreateDiscussionProps {
     title: string;
     body: string;
     tags: string[];
+    image?: File;
   }) => void;
 }
 
@@ -26,6 +27,9 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   const [body, setBody] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDisplayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
   const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
@@ -39,6 +43,49 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file type
+      const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a PNG, JPG, or JPEG image.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,7 +102,8 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     onSubmit({
       title: title.trim() || 'Untitled Discussion',
       body: body.trim(),
-      tags
+      tags,
+      image: selectedImage || undefined
     });
 
     // Reset form
@@ -63,7 +111,12 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     setBody('');
     setTags([]);
     setTagInput('');
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsExpanded(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -71,6 +124,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
       <CardContent className="p-3 sm:p-6">
         <div className="flex items-start gap-2 sm:gap-4">
           <Avatar className="h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0">
+            <AvatarImage src={profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs sm:text-sm font-bold">
               {userInitials}
             </AvatarFallback>
@@ -96,6 +150,26 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     className="min-h-[80px] sm:min-h-[100px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-500 focus:ring-0 focus:outline-none p-0"
                     autoFocus
                   />
+
+                  {/* Image Preview */}
+                  {imagePreview && (
+                    <div className="relative inline-block">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="max-w-full max-h-48 rounded-lg object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 h-6 w-6 p-0 bg-black/50 text-white hover:bg-black/70 rounded-full"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                   
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -117,8 +191,21 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                       <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
                         <Smile className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
-                      <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
-                        <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/png,image/jpg,image/jpeg"
+                        className="hidden"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2"
+                      >
+                        <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
                       <div className="flex-1 sm:flex-initial">
                         <Input

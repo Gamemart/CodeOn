@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Send, User, Clock, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 interface Reply {
   id: string;
@@ -16,6 +19,7 @@ interface Reply {
   profiles: {
     username: string | null;
     full_name: string | null;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -25,12 +29,17 @@ interface ReplySectionProps {
 }
 
 const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [replies, setReplies] = useState<Reply[]>([]);
   const [newReply, setNewReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
 
   const REPLIES_LIMIT = 5;
+
+  const userDisplayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
+  const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
 
   useEffect(() => {
     fetchReplies();
@@ -63,7 +72,7 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
         .from('replies')
         .select(`
           *,
-          profiles:author_id(username, full_name)
+          profiles:author_id(username, full_name, avatar_url)
         `)
         .eq('discussion_id', discussionId)
         .order('created_at', { ascending: true });
@@ -129,20 +138,32 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
     <div className="space-y-4">
       {/* Reply Form */}
       <form onSubmit={handleSubmitReply} className="space-y-3">
-        <Textarea
-          value={newReply}
-          onChange={(e) => setNewReply(e.target.value)}
-          placeholder="Write a reply..."
-          className="min-h-[80px] resize-none"
-        />
-        <Button
-          type="submit"
-          disabled={isSubmitting || !newReply.trim()}
-          className="flex items-center gap-2"
-        >
-          <Send className="h-4 w-4" />
-          {isSubmitting ? 'Posting...' : 'Post Reply'}
-        </Button>
+        <div className="flex items-start gap-3">
+          <Avatar className="h-8 w-8 flex-shrink-0">
+            <AvatarImage src={profile?.avatar_url || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <Textarea
+              value={newReply}
+              onChange={(e) => setNewReply(e.target.value)}
+              placeholder="Write a reply..."
+              className="min-h-[80px] resize-none"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={isSubmitting || !newReply.trim()}
+            className="flex items-center gap-2"
+          >
+            <Send className="h-4 w-4" />
+            {isSubmitting ? 'Posting...' : 'Post Reply'}
+          </Button>
+        </div>
       </form>
 
       {/* Replies List */}
@@ -158,6 +179,7 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-8 w-8">
+                    <AvatarImage src={reply.profiles?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs">
                       {authorInitials}
                     </AvatarFallback>
