@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -38,36 +39,6 @@ const Profile = () => {
   const [userRoleData, setUserRoleData] = useState<string>('user');
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (userId) {
-      fetchProfile();
-      fetchUserDiscussions();
-      fetchUserRole();
-    }
-  }, [userId]);
-
-  const fetchProfile = async () => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast({
-        title: "Error",
-        description: "Could not load user profile",
-        variant: "destructive"
-      });
-    }
-  };
 
   useEffect(() => {
     if (userId) {
