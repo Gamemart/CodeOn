@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
+// Import the Profile interface from useProfile to ensure consistency
 interface Profile {
   id: string;
   username: string | null;
@@ -20,7 +21,9 @@ interface Profile {
   banner_type: string | null;
   banner_value: string | null;
   status_message: string | null;
-  profile_alignment: string | null;
+  profile_alignment?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface EditProfileModalProps {
