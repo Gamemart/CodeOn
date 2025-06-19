@@ -231,7 +231,7 @@ const Index = () => {
           <div className="flex justify-around items-center">
             <button className="flex flex-col items-center space-y-1">
               <MessageCircle className="h-5 w-5 text-gray-600" />
-              <span className="text-xs text-gray-600">Explore</span>
+              <span className="text-xs text-gray-600">Chats</span>
             </button>
             <button className="flex flex-col items-center space-y-1">
               <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -260,10 +260,14 @@ const Index = () => {
           {/* Logo */}
           <div className="p-6 border-b border-gray-200/50">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <MessageCircle className="h-5 w-5 text-white" />
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/7afeeb37-7c54-4797-96a2-394387235bdd.png" 
+                  alt="ESTRANGHERO Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
-              <span className="text-xl font-bold text-gray-900">DiscussHub</span>
+              <span className="text-xl font-bold text-gray-900">ESTRANGHERO</span>
             </div>
           </div>
 
@@ -346,10 +350,10 @@ const Index = () => {
             {/* Header Tabs */}
             <div className="flex gap-8 mb-6 border-b border-gray-200/50">
               <button className="pb-3 border-b-2 border-blue-500 text-blue-600 font-medium">
-                For You
+                Home
               </button>
               <button className="pb-3 text-gray-500 hover:text-gray-700">
-                Following
+                Trending
               </button>
             </div>
 
