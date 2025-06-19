@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -198,23 +197,23 @@ const Profile = () => {
                   {userId && <CustomRoleBadge userId={userId} />}
                 </div>
 
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4">
-                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
-                    <div className="text-2xl font-bold text-white">{followers.length}</div>
-                    <div className="text-sm text-slate-400">Followers</div>
+                {/* Stats Row - Smaller and restored colors */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4">
+                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
+                    <div className="text-lg font-bold text-white">{followers.length}</div>
+                    <div className="text-xs text-slate-400">Followers</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
-                    <div className="text-2xl font-bold text-white">{following.length}</div>
-                    <div className="text-sm text-slate-400">Following</div>
+                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
+                    <div className="text-lg font-bold text-white">{following.length}</div>
+                    <div className="text-xs text-slate-400">Following</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
-                    <div className="text-2xl font-bold text-white">{discussions.length}</div>
-                    <div className="text-sm text-slate-400">Posts</div>
+                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
+                    <div className="text-lg font-bold text-white">{discussions.length}</div>
+                    <div className="text-xs text-slate-400">Posts</div>
                   </div>
-                  <div className="text-center p-3 bg-slate-700/30 rounded-lg border border-slate-600">
-                    <div className="text-sm text-slate-400">Joined</div>
-                    <div className="text-sm font-medium text-white">{new Date(profile.created_at).toLocaleDateString()}</div>
+                  <div className="text-center p-2 bg-slate-800/30 rounded-lg">
+                    <div className="text-xs text-slate-400">Joined</div>
+                    <div className="text-xs font-medium text-white">{new Date(profile.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
 
@@ -345,4 +344,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
