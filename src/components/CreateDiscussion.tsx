@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { Plus, X, Tag } from 'lucide-react';
+import { Plus, X, Tag, Smile, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 interface CreateDiscussionProps {
   onSubmit: (discussion: {
@@ -17,11 +19,16 @@ interface CreateDiscussionProps {
 }
 
 const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+
+  const userDisplayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
+  const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
@@ -36,17 +43,17 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) {
+    if (!body.trim()) {
       toast({
-        title: "Please fill in all fields",
-        description: "Title and body are required to create a discussion.",
+        title: "Please write something",
+        description: "Your post needs some content.",
         variant: "destructive"
       });
       return;
     }
 
     onSubmit({
-      title: title.trim(),
+      title: title.trim() || 'Untitled Discussion',
       body: body.trim(),
       tags
     });
@@ -56,114 +63,99 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     setBody('');
     setTags([]);
     setTagInput('');
-    setIsOpen(false);
+    setIsExpanded(false);
   };
 
-  if (!isOpen) {
-    return (
-      <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 transition-colors cursor-pointer" onClick={() => setIsOpen(true)}>
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-3">
-              <Plus className="h-6 w-6" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">Start a Discussion</h3>
-            <p className="text-gray-500 text-sm">Share your thoughts with the community</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="border-blue-200 shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-lg font-semibold text-gray-900">Create New Discussion</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsOpen(false)}
-          className="h-8 w-8 p-0"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              placeholder="Discussion title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-            />
-          </div>
+    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-bold">
+              {userInitials}
+            </AvatarFallback>
+          </Avatar>
           
-          <div>
-            <Textarea
-              placeholder="What's on your mind? Share your thoughts, ask questions, or start a conversation..."
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              className="min-h-[120px] border-gray-200 focus:border-blue-400 focus:ring-blue-400 resize-none"
-            />
+          <div className="flex-1">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isExpanded ? (
+                <div 
+                  className="cursor-text"
+                  onClick={() => setIsExpanded(true)}
+                >
+                  <div className="bg-gray-50/50 rounded-xl px-4 py-3 text-gray-500 hover:bg-gray-100/50 transition-colors">
+                    What's on your mind right now?
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Textarea
+                    placeholder="What's on your mind right now?"
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    className="min-h-[100px] resize-none border-0 bg-transparent text-lg placeholder:text-gray-500 focus:ring-0 focus:outline-none p-0"
+                    autoFocus
+                  />
+                  
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span 
+                          key={tag} 
+                          className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-blue-100"
+                          onClick={() => handleRemoveTag(tag)}
+                        >
+                          #{tag}
+                          <X className="h-3 w-3 ml-1 inline" />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-4">
+                      <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">
+                        <Smile className="h-5 w-5" />
+                      </Button>
+                      <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">
+                        <Mic className="h-5 w-5" />
+                      </Button>
+                      <div className="relative">
+                        <Input
+                          placeholder="Add tags..."
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                          className="text-sm border-0 bg-gray-50 focus:bg-gray-100 transition-colors w-32"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setIsExpanded(false)}
+                        className="text-gray-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        size="sm"
+                        disabled={!body.trim()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full"
+                      >
+                        Post
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </form>
           </div>
-          
-          <div>
-            <div className="flex gap-2 mb-2">
-              <div className="relative flex-1">
-                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Add tags (press Enter)"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  className="pl-10 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddTag}
-                disabled={!tagInput.trim() || tags.length >= 5}
-              >
-                Add
-              </Button>
-            </div>
-            
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="bg-blue-50 text-blue-700 cursor-pointer hover:bg-blue-100"
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    #{tag}
-                    <X className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex gap-2 pt-2">
-            <Button 
-              type="submit" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
-            >
-              Post Discussion
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setIsOpen(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );
