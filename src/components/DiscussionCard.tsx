@@ -60,6 +60,10 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
     setIsDeleteDialogOpen(false);
   };
 
+  const handleShowReplies = () => {
+    setShowReplies(true);
+  };
+
   return (
     <Card className="border border-gray-200 bg-white">
       <CardContent className="p-6">
@@ -142,7 +146,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             </button>
             
             <button
-              onClick={() => setShowReplies(!showReplies)}
+              onClick={handleShowReplies}
               className="flex items-center gap-2 hover:text-blue-500 transition-colors text-sm text-gray-500"
             >
               <MessageCircle className="h-5 w-5" />
