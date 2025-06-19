@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -71,21 +70,21 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   return (
-    <Card className="border-0 bg-transparent shadow-none">
+    <Card className="border border-gray-200 bg-white">
       <CardContent className="p-6">
         {/* Header with author info */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-white shadow-lg">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={discussion.authorAvatarUrl} />
-              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-bold">
+              <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
                 {discussion.authorInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span 
-                  className="font-semibold text-gray-900 cursor-pointer hover:text-purple-600 transition-colors" 
+                  className="font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
                   onClick={onAuthorClick}
                 >
                   {discussion.author}
@@ -105,18 +104,18 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           {isAuthor && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white/50 hover:bg-white/70 rounded-full">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl">
-                <DropdownMenuItem onClick={handleEdit} className="rounded-xl">
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEdit}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setIsDeleteDialogOpen(true)}
-                  className="text-red-600 focus:text-red-600 rounded-xl"
+                  className="text-red-600 focus:text-red-600"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
@@ -128,7 +127,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         
         {/* Content */}
         <div className="mb-4">
-          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-lg">
+          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
             {discussion.body}
           </p>
         </div>
@@ -137,43 +136,39 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         {discussion.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {discussion.tags.map((tag, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0 rounded-full px-3 py-1"
-              >
-                #{tag}
+              <Badge key={index} variant="secondary" className="text-xs">
+                {tag}
               </Badge>
             ))}
           </div>
         )}
         
         {/* Actions Row */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/30">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex items-center gap-6">
             <button
               onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-sm font-medium ${
-                discussion.isLiked ? 'text-red-500' : 'text-gray-600'
+              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-sm ${
+                discussion.isLiked ? 'text-red-500' : 'text-gray-500'
               }`}
             >
               <Heart className={`h-5 w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
-              <span>{discussion.likesCount} like{discussion.likesCount !== 1 ? 's' : ''}</span>
+              <span className="font-medium">{discussion.likesCount} like{discussion.likesCount !== 1 ? 's' : ''}</span>
             </button>
             
             <button
               onClick={handleShowReplies}
-              className="flex items-center gap-2 hover:text-purple-600 transition-colors text-sm font-medium text-gray-600"
+              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-sm text-gray-500"
             >
               <MessageCircle className="h-5 w-5" />
-              <span>{discussion.repliesCount} repl{discussion.repliesCount !== 1 ? 'ies' : 'y'}</span>
+              <span className="font-medium">{discussion.repliesCount} repl{discussion.repliesCount !== 1 ? 'ies' : 'y'}</span>
             </button>
           </div>
         </div>
 
         {/* Reply Section */}
         {showReplies && (
-          <div className="mt-6 pt-6 border-t border-white/30">
+          <div className="mt-4 pt-4 border-t border-gray-100">
             <ReplySection discussionId={discussion.id} onClose={handleCloseReplies} />
           </div>
         )}
@@ -195,7 +190,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/90 backdrop-blur-lg border border-white/20 rounded-3xl">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Discussion</AlertDialogTitle>
             <AlertDialogDescription>
@@ -203,11 +198,8 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="bg-red-600 hover:bg-red-700 rounded-2xl"
-            >
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
