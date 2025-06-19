@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -39,41 +38,59 @@ export const useDiscussions = () => {
 
   const fetchDiscussions = useCallback(async () => {
     try {
-      let query = supabase
+      // First, get the discussions with basic data
+      const { data: discussionsData, error: discussionsError } = await supabase
         .from('discussions')
         .select(`
           *,
           profiles!inner(id, username, full_name, status_message, avatar_url),
-          discussion_tags(tag),
-          replies_count:replies(count),
-          likes_count:likes(count)
+          discussion_tags(tag)
         `)
         .order('created_at', { ascending: false });
 
-      // Only add user-specific like data if user is authenticated
-      if (user?.id) {
-        query = supabase
-          .from('discussions')
-          .select(`
-            *,
-            profiles!inner(id, username, full_name, status_message, avatar_url),
-            discussion_tags(tag),
-            replies_count:replies(count),
-            likes_count:likes(count),
-            user_liked:likes!left(user_id)
-          `)
-          .eq('likes.user_id', user.id)
-          .order('created_at', { ascending: false });
+      if (discussionsError) throw discussionsError;
+
+      if (!discussionsData) {
+        setDiscussions([]);
+        return;
       }
 
-      const { data, error } = await query;
+      // Process discussions to get counts and user likes
+      const processedDiscussions = await Promise.all(
+        discussionsData.map(async (discussion: any) => {
+          // Get replies count
+          const { count: repliesCount } = await supabase
+            .from('replies')
+            .select('*', { count: 'exact', head: true })
+            .eq('discussion_id', discussion.id);
 
-      if (error) throw error;
+          // Get likes count
+          const { count: likesCount } = await supabase
+            .from('likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('discussion_id', discussion.id);
 
-      const processedDiscussions = data?.map((discussion: any) => ({
-        ...discussion,
-        user_liked: user?.id ? (discussion.user_liked && discussion.user_liked.length > 0) : false
-      })) || [];
+          // Check if user liked this discussion (only if authenticated)
+          let userLiked = false;
+          if (user?.id) {
+            const { data: userLikeData } = await supabase
+              .from('likes')
+              .select('id')
+              .eq('discussion_id', discussion.id)
+              .eq('user_id', user.id)
+              .single();
+            
+            userLiked = !!userLikeData;
+          }
+
+          return {
+            ...discussion,
+            replies_count: repliesCount || 0,
+            likes_count: likesCount || 0,
+            user_liked: userLiked
+          };
+        })
+      );
 
       setDiscussions(processedDiscussions);
     } catch (error) {
