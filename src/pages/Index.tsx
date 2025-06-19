@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -18,22 +19,48 @@ const Index = () => {
   const { profile } = useProfile();
   const { discussions, loading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  // Filter discussions based on search query and selected tag
+  // Handle search
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  // Handle filter by tag
+  const handleFilterByTag = (tag: string) => {
+    if (!activeFilters.includes(tag)) {
+      setActiveFilters(prev => [...prev, tag]);
+    }
+  };
+
+  // Handle remove filter
+  const handleRemoveFilter = (tag: string) => {
+    setActiveFilters(prev => prev.filter(filter => filter !== tag));
+  };
+
+  // Get popular tags from all discussions
+  const popularTags = Array.from(
+    new Set(discussions.flatMap(d => d.discussion_tags.map(dt => dt.tag)))
+  ).slice(0, 10);
+
+  // Filter discussions based on search query and selected tags
   const filteredDiscussions = discussions.filter(discussion => {
     const authorName = discussion.profiles?.full_name || discussion.profiles?.username || 'Anonymous';
-    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
     const tags = discussion.discussion_tags.map(dt => dt.tag);
 
-    return (
-      (searchQuery.trim() === '' || discussion.title.toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (selectedTag === '' || tags.includes(selectedTag))
-    );
+    const matchesSearch = searchQuery.trim() === '' || 
+      discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      discussion.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      authorName.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilters = activeFilters.length === 0 || 
+      activeFilters.some(filter => tags.includes(filter));
+
+    return matchesSearch && matchesFilters;
   });
 
   // Handle author click
-  const handleAuthorClick = (authorId) => {
+  const handleAuthorClick = (authorId: string) => {
     navigate(`/profile/${authorId}`);
   };
 
@@ -95,11 +122,11 @@ const Index = () => {
       <main className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6">
         {/* Search and Filter */}
         <SearchAndFilter
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedTag={selectedTag}
-          setSelectedTag={setSelectedTag}
-          discussions={discussions}
+          onSearch={handleSearch}
+          onFilterByTag={handleFilterByTag}
+          activeFilters={activeFilters}
+          onRemoveFilter={handleRemoveFilter}
+          popularTags={popularTags}
         />
 
         {/* Create Discussion */}
@@ -144,7 +171,7 @@ const Index = () => {
                 <MessageCircle className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No discussions found</h3>
                 <p className="text-gray-600 mb-4 text-sm sm:text-base">
-                  {searchQuery || selectedTag 
+                  {searchQuery || activeFilters.length > 0
                     ? "Try adjusting your search criteria or clearing filters."
                     : "Be the first to start a discussion!"
                   }
