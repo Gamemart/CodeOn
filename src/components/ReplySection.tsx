@@ -31,7 +31,7 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
 
-  const REPLIES_LIMIT = 3;
+  const REPLIES_LIMIT = 5;
 
   useEffect(() => {
     fetchReplies();
@@ -127,112 +127,91 @@ const ReplySection = ({ discussionId }: ReplySectionProps) => {
   const hasMoreReplies = replies.length > REPLIES_LIMIT;
 
   return (
-    <div className="w-full">
+    <div className="mt-4 space-y-4">
       <Button
         variant="ghost"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 h-auto p-1 text-sm font-normal"
+        className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
       >
         <MessageCircle className="h-4 w-4" />
-        <span>{replies.length}</span>
+        <span>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
       </Button>
 
       {isExpanded && (
-        <div className="mt-3 space-y-3">
+        <div className="space-y-4 pl-4 border-l-2 border-gray-200">
+          {/* Reply Form */}
+          <form onSubmit={handleSubmitReply} className="space-y-3">
+            <Textarea
+              value={newReply}
+              onChange={(e) => setNewReply(e.target.value)}
+              placeholder="Write a reply..."
+              className="min-h-[80px] resize-none"
+            />
+            <Button
+              type="submit"
+              disabled={isSubmitting || !newReply.trim()}
+              className="flex items-center gap-2"
+            >
+              <Send className="h-4 w-4" />
+              {isSubmitting ? 'Posting...' : 'Post Reply'}
+            </Button>
+          </form>
+
           {/* Replies List */}
-          {displayedReplies.length > 0 && (
-            <div className="space-y-2">
-              {/* View More Replies Button */}
-              {hasMoreReplies && !showAllReplies && (
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowAllReplies(true)}
-                  className="text-gray-500 hover:text-gray-700 text-sm font-normal h-auto p-1 mb-2"
-                >
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                  View {replies.length - REPLIES_LIMIT} more replies
-                </Button>
-              )}
+          <div className="space-y-3">
+            {displayedReplies.map((reply) => {
+              const authorName = reply.profiles?.full_name || 
+                               reply.profiles?.username || 
+                               'Anonymous User';
+              const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
 
-              {displayedReplies.map((reply) => {
-                const authorName = reply.profiles?.full_name || 
-                                 reply.profiles?.username || 
-                                 'Anonymous User';
-                const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-
-                return (
-                  <div key={reply.id} className="flex gap-2 sm:gap-3">
-                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
-                      <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs">
-                        {authorInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block max-w-full">
-                        <div className="font-medium text-sm text-gray-900 mb-0.5">{authorName}</div>
-                        <p className="text-gray-800 text-sm leading-relaxed break-words">{reply.content}</p>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 ml-3">
-                        <span className="text-xs text-gray-500">{formatTimeAgo(reply.created_at)}</span>
-                        <button className="text-xs text-gray-500 hover:text-gray-700 font-medium">
-                          Like
-                        </button>
-                        <button className="text-xs text-gray-500 hover:text-gray-700 font-medium">
-                          Reply
-                        </button>
+              return (
+                <Card key={reply.id} className="bg-gray-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-gradient-to-br from-gray-500 to-gray-600 text-white text-xs">
+                          {authorInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                          <span className="font-medium text-gray-700">{authorName}</span>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{formatTimeAgo(reply.created_at)}</span>
+                          </div>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed">{reply.content}</p>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  </CardContent>
+                </Card>
+              );
+            })}
 
-              {/* Show Less Button */}
-              {showAllReplies && hasMoreReplies && (
+            {/* View All Replies Toggle Button */}
+            {hasMoreReplies && (
+              <div className="flex justify-center pt-2">
                 <Button
                   variant="ghost"
-                  onClick={() => setShowAllReplies(false)}
-                  className="text-gray-500 hover:text-gray-700 text-sm font-normal h-auto p-1 mt-2"
+                  onClick={() => setShowAllReplies(!showAllReplies)}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                 >
-                  <ChevronUp className="h-4 w-4 mr-1" />
-                  Show recent replies
+                  {showAllReplies ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Show Recent Replies
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      View All {replies.length} Replies
+                    </>
+                  )}
                 </Button>
-              )}
-            </div>
-          )}
-
-          {/* Reply Form */}
-          <div className="flex gap-2 sm:gap-3 mt-3">
-            <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
-                U
-              </AvatarFallback>
-            </Avatar>
-            <form onSubmit={handleSubmitReply} className="flex-1 flex gap-2">
-              <div className="flex-1 relative">
-                <Textarea
-                  value={newReply}
-                  onChange={(e) => setNewReply(e.target.value)}
-                  placeholder="Write a reply..."
-                  className="min-h-[36px] max-h-[120px] resize-none rounded-2xl border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm py-2 px-3 pr-10"
-                  rows={1}
-                  onInput={(e) => {
-                    const target = e.target as HTMLTextAreaElement;
-                    target.style.height = 'auto';
-                    target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-                  }}
-                />
-                {newReply.trim() && (
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 rounded-full"
-                  >
-                    <Send className="h-3 w-3" />
-                  </Button>
-                )}
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}
