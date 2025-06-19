@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Share, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ReplySection from '@/components/ReplySection';
-import EditDiscussionModal from '@/components/EditDiscussionModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Discussion {
@@ -38,20 +39,42 @@ interface DiscussionCardProps {
 const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }: DiscussionCardProps) => {
   const { user } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(discussion.title);
+  const [editBody, setEditBody] = useState(discussion.body);
+  const [editTags, setEditTags] = useState(discussion.tags.join(', '));
   const [showReplies, setShowReplies] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
 
   const handleEdit = () => {
-    setIsEditModalOpen(true);
+    setIsEditing(true);
+    setEditTitle(discussion.title);
+    setEditBody(discussion.body);
+    setEditTags(discussion.tags.join(', '));
   };
 
-  const handleEditSave = (updates: { title: string; body: string; tags: string[] }) => {
+  const handleSaveEdit = () => {
     if (onEdit) {
-      onEdit(discussion.id, updates);
+      const tagsArray = editTags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      
+      onEdit(discussion.id, {
+        title: editTitle,
+        body: editBody,
+        tags: tagsArray
+      });
     }
-    setIsEditModalOpen(false);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle(discussion.title);
+    setEditBody(discussion.body);
+    setEditTags(discussion.tags.join(', '));
   };
 
   const handleDelete = () => {
@@ -103,41 +126,101 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           </div>
           
           {/* Actions Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
-                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+          {!isEditing && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
+                  <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isAuthor && (
+                  <>
+                    <DropdownMenuItem onClick={handleEdit}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Edit Actions */}
+          {isEditing && (
+            <div className="flex gap-2 flex-shrink-0">
+              <Button
+                onClick={handleSaveEdit}
+                size="sm"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0"
+                disabled={!editTitle.trim() || !editBody.trim()}
+              >
+                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isAuthor && (
-                <>
-                  <DropdownMenuItem onClick={handleEdit}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Button
+                onClick={handleCancelEdit}
+                variant="outline"
+                size="sm"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0"
+              >
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
+          )}
         </div>
         
         {/* Content */}
         <div className="mb-3 sm:mb-4">
-          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
-            {discussion.body}
-          </p>
+          {isEditing ? (
+            <div className="space-y-3">
+              {/* Title Edit */}
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Edit title..."
+                className="text-sm sm:text-base lg:text-lg font-medium"
+              />
+              
+              {/* Body Edit */}
+              <Textarea
+                value={editBody}
+                onChange={(e) => setEditBody(e.target.value)}
+                placeholder="Edit your thoughts..."
+                className="text-sm sm:text-base lg:text-lg min-h-[80px] resize-none"
+              />
+              
+              {/* Tags Edit */}
+              <Input
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                placeholder="Edit tags (comma separated)..."
+                className="text-xs sm:text-sm"
+              />
+            </div>
+          ) : (
+            <div>
+              {/* Display Title */}
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">
+                {discussion.title}
+              </h3>
+              
+              {/* Display Body */}
+              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
+                {discussion.body}
+              </p>
+            </div>
+          )}
         </div>
         
         {/* Tags */}
-        {discussion.tags.length > 0 && (
+        {!isEditing && discussion.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
             {discussion.tags.map((tag, index) => (
               <span 
@@ -151,54 +234,42 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         )}
         
         {/* Actions Row */}
-        <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
-            <button
-              onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-1 sm:gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm lg:text-base ${
-                discussion.isLiked ? 'text-red-500' : 'text-gray-500'
-              }`}
-            >
-              <Heart className={`h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
-              <span className="font-medium">{discussion.likesCount}</span>
-            </button>
-            
-            <button
-              onClick={handleShowReplies}
-              className="flex items-center gap-1 sm:gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm lg:text-base text-gray-500"
-            >
-              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-              <span className="font-medium">{discussion.repliesCount}</span>
-            </button>
+        {!isEditing && (
+          <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
+              <button
+                onClick={() => onLike(discussion.id)}
+                className={`flex items-center gap-1 sm:gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm lg:text-base ${
+                  discussion.isLiked ? 'text-red-500' : 'text-gray-500'
+                }`}
+              >
+                <Heart className={`h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
+                <span className="font-medium">{discussion.likesCount}</span>
+              </button>
+              
+              <button
+                onClick={handleShowReplies}
+                className="flex items-center gap-1 sm:gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm lg:text-base text-gray-500"
+              >
+                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                <span className="font-medium">{discussion.repliesCount}</span>
+              </button>
 
-            <button className="flex items-center gap-1 sm:gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm lg:text-base text-gray-500">
-              <Share className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-              <span className="hidden sm:inline font-medium">Share</span>
-            </button>
+              <button className="flex items-center gap-1 sm:gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm lg:text-base text-gray-500">
+                <Share className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                <span className="hidden sm:inline font-medium">Share</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reply Section */}
-        {showReplies && (
+        {showReplies && !isEditing && (
           <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
             <ReplySection discussionId={discussion.id} onClose={handleCloseReplies} />
           </div>
         )}
       </CardContent>
-
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <EditDiscussionModal
-          discussion={{
-            id: discussion.id,
-            title: discussion.title,
-            body: discussion.body,
-            tags: discussion.tags
-          }}
-          onSave={handleEditSave}
-          onCancel={() => setIsEditModalOpen(false)}
-        />
-      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -213,7 +284,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
               Delete
-            </AlertDialogAction>
+            </ActionAlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
