@@ -26,7 +26,6 @@ interface Discussion {
   likesCount: number;
   isLiked: boolean;
   statusMessage?: string;
-  images?: string[];
 }
 
 interface DiscussionCardProps {
@@ -219,27 +218,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             </div>
           )}
         </div>
-
-        {/* Images Display */}
-        {!isEditing && discussion.images && discussion.images.length > 0 && (
-          <div className={`mb-3 sm:mb-4 grid gap-2 ${
-            discussion.images.length === 1 ? 'grid-cols-1' :
-            discussion.images.length === 2 ? 'grid-cols-2' :
-            discussion.images.length === 3 ? 'grid-cols-3' :
-            'grid-cols-2 sm:grid-cols-3'
-          }`}>
-            {discussion.images.map((imageUrl, index) => (
-              <div key={index} className="relative group">
-                <img 
-                  src={imageUrl} 
-                  alt={`Discussion image ${index + 1}`} 
-                  className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => window.open(imageUrl, '_blank')}
-                />
-              </div>
-            ))}
-          </div>
-        )}
         
         {/* Tags */}
         {!isEditing && discussion.tags.length > 0 && (

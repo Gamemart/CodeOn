@@ -161,17 +161,14 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                 </div>
               ) : (
                 <>
-                  {/* Title Input */}
-                  <Input
-                    placeholder="Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="text-base sm:text-lg font-medium border-0 bg-transparent focus:ring-0 focus:outline-none p-0 placeholder:text-gray-400"
-                  />
-
-                  {/* Body Textarea */}
                   <Textarea
-                    placeholder="Write your thoughts...."
+                    placeholder="Share your thoughts, ask questions, or start a discussion... 
+
+💡 Tips:
+• Be clear and specific about what you want to discuss
+• Use tags to help others find your post
+• Add images to make your post more engaging
+• Be respectful and constructive in your communication"
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
@@ -207,7 +204,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     </div>
                   )}
                   
-                  {/* Tags Display */}
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 sm:gap-2">
                       {tags.map((tag) => (
@@ -223,7 +219,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     </div>
                   )}
                   
-                  {/* Bottom Action Bar */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 gap-3 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
