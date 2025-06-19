@@ -45,26 +45,26 @@ const EditDiscussionModal = ({ discussion, onSave, onCancel }: EditDiscussionMod
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <Card className="bg-white w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-4xl max-h-[90vh] overflow-y-auto">
-        <CardContent className="p-4 sm:p-6 lg:p-8">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3">
+      <Card className="bg-white w-full max-w-md max-h-[85vh] overflow-y-auto">
+        <CardContent className="p-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Edit Discussion</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Edit Discussion</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onCancel}
-              className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-gray-400 hover:text-gray-600"
+              className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
             >
-              <X className="h-4 w-4 sm:h-5 sm:w-5" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4">
             {/* Title Input */}
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 Title
               </label>
               <Input
@@ -72,13 +72,13 @@ const EditDiscussionModal = ({ discussion, onSave, onCancel }: EditDiscussionMod
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="What's on your mind?"
-                className="w-full text-sm sm:text-base"
+                className="w-full"
               />
             </div>
 
             {/* Content Input */}
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
                 Content
               </label>
               <Textarea
@@ -86,28 +86,28 @@ const EditDiscussionModal = ({ discussion, onSave, onCancel }: EditDiscussionMod
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Share your thoughts..."
-                className="w-full min-h-[120px] sm:min-h-[150px] lg:min-h-[200px] resize-none text-sm sm:text-base"
+                className="w-full min-h-[100px] resize-none"
               />
             </div>
 
             {/* Tags Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Tags (Optional)
               </label>
               
               {/* Existing Tags */}
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 sm:gap-2 mb-3">
+                <div className="flex flex-wrap gap-1 mb-2">
                   {tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full"
+                      className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
                     >
                       #{tag}
                       <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="text-blue-600 hover:text-blue-800 ml-1"
+                        className="text-blue-600 hover:text-blue-800"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -118,46 +118,43 @@ const EditDiscussionModal = ({ discussion, onSave, onCancel }: EditDiscussionMod
 
               {/* Add New Tag */}
               <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Add a tag..."
-                    className="text-sm sm:text-base"
-                    disabled={tags.length >= 5}
-                  />
-                </div>
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Add a tag..."
+                  className="flex-1"
+                  disabled={tags.length >= 5}
+                />
                 <Button
                   onClick={handleAddTag}
                   disabled={!newTag.trim() || tags.includes(newTag.trim()) || tags.length >= 5}
                   size="sm"
                   variant="outline"
-                  className="flex-shrink-0 px-3 sm:px-4"
+                  className="px-3"
                 >
-                  <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Add</span>
+                  <Tag className="h-3 w-3" />
                 </Button>
               </div>
               
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-1">
                 Add up to 5 tags to help others find your discussion
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-end sm:space-x-3 pt-4 sm:pt-6">
+            <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 onClick={onCancel}
-                className="w-full sm:w-auto order-2 sm:order-1"
+                className="flex-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={!title.trim() || !body.trim()}
-                className="w-full sm:w-auto order-1 sm:order-2"
+                className="flex-1"
               >
                 Save Changes
               </Button>
