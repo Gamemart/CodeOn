@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ReplySection from '@/components/ReplySection';
+import EditDiscussionModal from '@/components/EditDiscussionModal';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Discussion {
@@ -29,20 +30,26 @@ interface DiscussionCardProps {
   discussion: Discussion;
   onLike: (discussionId: string) => void;
   onAuthorClick?: () => void;
-  onEdit?: (discussionId: string) => void;
+  onEdit?: (discussionId: string, updates: { title: string; body: string; tags: string[] }) => void;
   onDelete?: (discussionId: string) => void;
 }
 
 const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }: DiscussionCardProps) => {
   const { user } = useAuth();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
 
   const handleEdit = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = (updates: { title: string; body: string; tags: string[] }) => {
     if (onEdit) {
-      onEdit(discussion.id);
+      onEdit(discussion.id, updates);
     }
+    setIsEditModalOpen(false);
   };
 
   const handleDelete = () => {
@@ -122,7 +129,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         )}
         
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
@@ -148,6 +155,20 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         {/* Reply Section */}
         <ReplySection discussionId={discussion.id} />
       </CardContent>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <EditDiscussionModal
+          discussion={{
+            id: discussion.id,
+            title: discussion.title,
+            body: discussion.body,
+            tags: discussion.tags
+          }}
+          onSave={handleEditSave}
+          onCancel={() => setIsEditModalOpen(false)}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

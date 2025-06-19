@@ -78,12 +78,8 @@ const Index = () => {
     createDiscussion(newDiscussion);
   };
 
-  const handleEditDiscussion = (discussionId: string) => {
-    // For now, just show a toast. You can implement an edit modal later
-    toast({
-      title: "Edit Discussion",
-      description: "Edit functionality will be implemented with a modal."
-    });
+  const handleEditDiscussion = (discussionId: string, updates: { title: string; body: string; tags: string[] }) => {
+    editDiscussion(discussionId, updates);
   };
 
   const handleDeleteDiscussion = (discussionId: string) => {
