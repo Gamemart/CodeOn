@@ -70,32 +70,34 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden mb-4 w-full">
-      <CardContent className="p-4 sm:p-6">
+    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 w-full">
+      <CardContent className="p-3 sm:p-4 lg:p-6">
         {/* Header with author info */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+        <div className="flex items-start justify-between mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 flex-shrink-0">
               <AvatarImage src={discussion.authorAvatarUrl} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-medium">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs sm:text-sm font-medium">
                 {discussion.authorInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                 <span 
-                  className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 text-sm sm:text-base truncate" 
+                  className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 text-sm sm:text-base lg:text-lg truncate" 
                   onClick={onAuthorClick}
                 >
                   {discussion.author}
                 </span>
                 {discussion.authorId && (
-                  <CustomRoleBadge userId={discussion.authorId} />
+                  <div className="flex-shrink-0">
+                    <CustomRoleBadge userId={discussion.authorId} />
+                  </div>
                 )}
                 <span className="text-gray-500 text-xs sm:text-sm whitespace-nowrap">• {discussion.createdAt}</span>
               </div>
               {discussion.statusMessage && (
-                <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">"{discussion.statusMessage}"</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">"{discussion.statusMessage}"</p>
               )}
             </div>
           </div>
@@ -103,8 +105,8 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           {/* Actions Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
+                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -128,17 +130,20 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         </div>
         
         {/* Content */}
-        <div className="mb-4">
-          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+        <div className="mb-3 sm:mb-4">
+          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
             {discussion.body}
           </p>
         </div>
         
         {/* Tags */}
         {discussion.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
             {discussion.tags.map((tag, index) => (
-              <span key={index} className="text-blue-600 text-xs sm:text-sm hover:underline cursor-pointer">
+              <span 
+                key={index} 
+                className="text-blue-600 text-xs sm:text-sm lg:text-base hover:underline cursor-pointer bg-blue-50 px-2 py-1 rounded-full"
+              >
                 #{tag}
               </span>
             ))}
@@ -146,36 +151,36 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         )}
         
         {/* Actions Row */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-4 sm:gap-6">
+        <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
             <button
               onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm ${
+              className={`flex items-center gap-1 sm:gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm lg:text-base ${
                 discussion.isLiked ? 'text-red-500' : 'text-gray-500'
               }`}
             >
-              <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
-              <span>{discussion.likesCount}</span>
+              <Heart className={`h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
+              <span className="font-medium">{discussion.likesCount}</span>
             </button>
             
             <button
               onClick={handleShowReplies}
-              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm text-gray-500"
+              className="flex items-center gap-1 sm:gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm lg:text-base text-gray-500"
             >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>{discussion.repliesCount}</span>
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+              <span className="font-medium">{discussion.repliesCount}</span>
             </button>
 
-            <button className="flex items-center gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm text-gray-500">
-              <Share className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Share</span>
+            <button className="flex items-center gap-1 sm:gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm lg:text-base text-gray-500">
+              <Share className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+              <span className="hidden sm:inline font-medium">Share</span>
             </button>
           </div>
         </div>
 
         {/* Reply Section */}
         {showReplies && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
             <ReplySection discussionId={discussion.id} onClose={handleCloseReplies} />
           </div>
         )}
@@ -197,16 +202,16 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[90vw] max-w-md mx-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Discussion</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Delete Discussion</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base">
               Are you sure you want to delete this discussion? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
