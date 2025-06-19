@@ -34,7 +34,7 @@ export const useSearch = () => {
           title,
           body,
           created_at,
-          profiles!inner(username, full_name)
+          profiles!inner(id, username, full_name)
         `)
         .or(`title.ilike.%${query}%,body.ilike.%${query}%`)
         .order('created_at', { ascending: false })
