@@ -1,118 +1,107 @@
 
-import React, { useState } from 'react';
-import { MessageCircle, Heart, User, Clock } from 'lucide-react';
+import React from 'react';
+import { Heart, MessageCircle, Calendar, Hash } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ReplySection from './ReplySection';
 
-interface Discussion {
-  id: string;
-  title: string;
-  body: string;
-  author: string;
-  authorInitials: string;
-  createdAt: string;
-  tags: string[];
-  repliesCount: number;
-  likesCount: number;
-  isLiked: boolean;
-}
-
 interface DiscussionCardProps {
-  discussion: Discussion;
-  onReply: (discussionId: string) => void;
+  discussion: {
+    id: string;
+    title: string;
+    body: string;
+    author: string;
+    authorInitials: string;
+    createdAt: string;
+    tags: string[];
+    repliesCount: number;
+    likesCount: number;
+    isLiked: boolean;
+  };
+  onReply: () => void;
   onLike: (discussionId: string) => void;
+  onAuthorClick?: () => void;
 }
 
-const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [showReplies, setShowReplies] = useState(false);
-
-  const handleReplyClick = () => {
-    setShowReplies(!showReplies);
-  };
-
+const DiscussionCard = ({ discussion, onReply, onLike, onAuthorClick }: DiscussionCardProps) => {
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/30 backdrop-blur-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                {discussion.authorInitials}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                {discussion.title}
-              </h3>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span>{discussion.author}</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>{discussion.createdAt}</span>
-                </div>
+    <Card className="bg-white/60 backdrop-blur-sm border border-gray-200 hover:shadow-lg transition-all duration-200">
+      <CardContent className="p-6">
+        {/* Header */}
+        <div className="flex items-start gap-4 mb-4">
+          <Avatar 
+            className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+            onClick={onAuthorClick}
+          >
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+              {discussion.authorInitials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <button 
+                onClick={onAuthorClick}
+                className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+              >
+                {discussion.author}
+              </button>
+              <div className="flex items-center gap-1 text-sm text-gray-500">
+                <Calendar className="h-3 w-3" />
+                <span>{discussion.createdAt}</span>
               </div>
             </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
+              {discussion.title}
+            </h2>
           </div>
         </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <p className={`text-gray-700 leading-relaxed ${!isExpanded && discussion.body.length > 200 ? 'line-clamp-3' : ''}`}>
-          {discussion.body}
-        </p>
-        
-        {discussion.body.length > 200 && (
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm mt-2 transition-colors"
-          >
-            {isExpanded ? 'Show less' : 'Read more'}
-          </button>
-        )}
-        
-        <div className="flex flex-wrap gap-2 mt-4">
-          {discussion.tags.map((tag) => (
-            <Badge 
-              key={tag} 
-              variant="secondary" 
-              className="bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
-            >
-              #{tag}
-            </Badge>
-          ))}
+
+        {/* Content */}
+        <div className="mb-4">
+          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {discussion.body}
+          </p>
         </div>
-        
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+
+        {/* Tags */}
+        {discussion.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {discussion.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200">
+                <Hash className="h-3 w-3 mr-1" />
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-2 hover:bg-red-50 ${discussion.isLiked ? 'text-red-600' : 'text-gray-600'}`}
+              className={`flex items-center gap-2 ${
+                discussion.isLiked 
+                  ? 'text-red-600 hover:text-red-700' 
+                  : 'text-gray-600 hover:text-red-600'
+              }`}
             >
               <Heart className={`h-4 w-4 ${discussion.isLiked ? 'fill-current' : ''}`} />
               <span>{discussion.likesCount}</span>
             </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReplyClick}
-              className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>{discussion.repliesCount} replies</span>
-            </Button>
+          </div>
+          
+          <div className="text-sm text-gray-500">
+            {discussion.repliesCount} {discussion.repliesCount === 1 ? 'reply' : 'replies'}
           </div>
         </div>
 
-        {showReplies && (
-          <ReplySection discussionId={discussion.id} />
-        )}
+        {/* Reply Section */}
+        <ReplySection discussionId={discussion.id} />
       </CardContent>
     </Card>
   );

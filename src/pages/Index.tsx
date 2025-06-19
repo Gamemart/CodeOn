@@ -1,13 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Users, TrendingUp, User, LogOut } from 'lucide-react';
+import { MessageCircle, Users, TrendingUp, User, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DiscussionCard from '@/components/DiscussionCard';
 import CreateDiscussion from '@/components/CreateDiscussion';
 import SearchAndFilter from '@/components/SearchAndFilter';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from '@/hooks/use-toast';
 
 const popularTags = ['react', 'typescript', 'webdev', 'frontend', 'javascript', 'state-management', 'nextjs', 'tailwind'];
@@ -15,6 +18,7 @@ const popularTags = ['react', 'typescript', 'webdev', 'frontend', 'javascript', 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { discussions, loading: discussionsLoading, createDiscussion, toggleLike } = useDiscussions();
+  const { userRole } = useUserRoles();
   const [filteredDiscussions, setFilteredDiscussions] = useState(discussions);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -122,24 +126,40 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-gray-700">{userDisplayName}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-red-600"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-gray-700">{userDisplayName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </DropdownMenuItem>
+                  
+                  {(userRole === 'admin' || userRole === 'moderator') && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -238,6 +258,7 @@ const Index = () => {
                       }}
                       onReply={() => {}} // No longer needed, handled in ReplySection
                       onLike={handleLike}
+                      onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
                     />
                   );
                 })
