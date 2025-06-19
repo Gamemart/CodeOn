@@ -17,21 +17,42 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const { user, login, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
+  const [userLikes, setUserLikes] = useState<string[]>([]);
   
   const {
     discussions,
     loading,
     createDiscussion,
-    likeDiscussion,
+    toggleLike,
     editDiscussion,
-    deleteDiscussion,
-    userLikes
+    deleteDiscussion
   } = useDiscussions();
+
+  // Fetch user likes
+  useEffect(() => {
+    const fetchUserLikes = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('likes')
+          .select('discussion_id')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        setUserLikes(data?.map(like => like.discussion_id) || []);
+      } catch (error) {
+        console.error('Error fetching user likes:', error);
+      }
+    };
+
+    fetchUserLikes();
+  }, [user]);
 
   const filteredDiscussions = discussions.filter(discussion => {
     const matchesSearch = discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,13 +80,26 @@ const Index = () => {
       setIsAuthModalOpen(true);
       return;
     }
-    await likeDiscussion(discussionId);
+    await toggleLike(discussionId);
+    
+    // Update local likes state
+    setUserLikes(prev => {
+      if (prev.includes(discussionId)) {
+        return prev.filter(id => id !== discussionId);
+      } else {
+        return [...prev, discussionId];
+      }
+    });
   };
 
   const handleUserClick = (authorId?: string) => {
     if (authorId) {
       navigate(`/profile/${authorId}`);
     }
+  };
+
+  const handleLogin = () => {
+    setIsAuthModalOpen(true);
   };
 
   if (loading) {
@@ -112,7 +146,7 @@ const Index = () => {
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={logout}
+                  onClick={signOut}
                   className="bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 rounded-xl p-2"
                 >
                   <LogOut className="h-5 w-5 text-gray-900" />
@@ -120,7 +154,7 @@ const Index = () => {
               </div>
             ) : (
               <Button
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={handleLogin}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl px-6 py-2 shadow-lg"
               >
                 Sign In
@@ -205,13 +239,13 @@ const Index = () => {
                       author,
                       authorId: discussion.author_id,
                       authorInitials,
-                      authorAvatarUrl: discussion.profiles?.avatar_url,
+                      authorAvatarUrl: undefined, // Set to undefined since it's not available
                       createdAt: new Date(discussion.created_at).toLocaleDateString(),
                       tags,
                       repliesCount: discussion.replies_count || 0,
                       likesCount: discussion.likes_count || 0,
                       isLiked,
-                      statusMessage: discussion.profiles?.status_message
+                      statusMessage: undefined // Set to undefined since it's not available
                     }}
                     onLike={handleLikeDiscussion}
                     onAuthorClick={() => handleUserClick(discussion.author_id)}
@@ -243,7 +277,7 @@ const Index = () => {
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
-          onLogin={login}
+          onLogin={handleLogin}
         />
       </main>
     </div>
