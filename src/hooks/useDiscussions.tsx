@@ -120,6 +120,99 @@ export const useDiscussions = () => {
     }
   };
 
+  const editDiscussion = async (discussionId: string, updates: {
+    title?: string;
+    body?: string;
+    tags?: string[];
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Update discussion
+      const { error: discussionError } = await supabase
+        .from('discussions')
+        .update({
+          title: updates.title,
+          body: updates.body,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', discussionId)
+        .eq('author_id', user.id); // Ensure only author can edit
+
+      if (discussionError) throw discussionError;
+
+      // Update tags if provided
+      if (updates.tags) {
+        // Delete existing tags
+        const { error: deleteTagsError } = await supabase
+          .from('discussion_tags')
+          .delete()
+          .eq('discussion_id', discussionId);
+
+        if (deleteTagsError) throw deleteTagsError;
+
+        // Add new tags
+        if (updates.tags.length > 0) {
+          const { error: tagsError } = await supabase
+            .from('discussion_tags')
+            .insert(
+              updates.tags.map(tag => ({
+                discussion_id: discussionId,
+                tag: tag
+              }))
+            );
+
+          if (tagsError) throw tagsError;
+        }
+      }
+
+      toast({
+        title: "Discussion updated!",
+        description: "Your discussion has been updated successfully."
+      });
+
+      fetchDiscussions(); // Refresh discussions
+    } catch (error: any) {
+      console.error('Error updating discussion:', error);
+      toast({
+        title: "Error updating discussion",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteDiscussion = async (discussionId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Delete discussion (cascading deletes will handle tags, replies, etc.)
+      const { error } = await supabase
+        .from('discussions')
+        .delete()
+        .eq('id', discussionId)
+        .eq('author_id', user.id); // Ensure only author can delete
+
+      if (error) throw error;
+
+      toast({
+        title: "Discussion deleted!",
+        description: "Your discussion has been deleted successfully."
+      });
+
+      fetchDiscussions(); // Refresh discussions
+    } catch (error: any) {
+      console.error('Error deleting discussion:', error);
+      toast({
+        title: "Error deleting discussion",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const toggleLike = async (discussionId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -200,6 +293,8 @@ export const useDiscussions = () => {
     discussions,
     loading,
     createDiscussion,
+    editDiscussion,
+    deleteDiscussion,
     toggleLike,
     refetch: fetchDiscussions
   };

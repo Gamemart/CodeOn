@@ -16,11 +16,12 @@ const popularTags = ['react', 'typescript', 'webdev', 'frontend', 'javascript', 
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { discussions, loading: discussionsLoading, createDiscussion, toggleLike } = useDiscussions();
+  const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
   const { userRole } = useUserRoles();
   const [filteredDiscussions, setFilteredDiscussions] = useState(discussions);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [editingDiscussion, setEditingDiscussion] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Redirect to auth if not logged in
@@ -75,6 +76,18 @@ const Index = () => {
     tags: string[];
   }) => {
     createDiscussion(newDiscussion);
+  };
+
+  const handleEditDiscussion = (discussionId: string) => {
+    // For now, just show a toast. You can implement an edit modal later
+    toast({
+      title: "Edit Discussion",
+      description: "Edit functionality will be implemented with a modal."
+    });
+  };
+
+  const handleDeleteDiscussion = (discussionId: string) => {
+    deleteDiscussion(discussionId);
   };
 
   const handleLike = (discussionId: string) => {
@@ -258,6 +271,8 @@ const Index = () => {
                       }}
                       onLike={handleLike}
                       onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                      onEdit={handleEditDiscussion}
+                      onDelete={handleDeleteDiscussion}
                     />
                   );
                 })
