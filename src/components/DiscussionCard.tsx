@@ -70,21 +70,21 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden mb-4">
-      <CardContent className="p-6">
+    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden mb-4 w-full">
+      <CardContent className="p-4 sm:p-6">
         {/* Header with author info */}
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
               <AvatarImage src={discussion.authorAvatarUrl} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-medium">
                 {discussion.authorInitials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span 
-                  className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600" 
+                  className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 text-sm sm:text-base truncate" 
                   onClick={onAuthorClick}
                 >
                   {discussion.author}
@@ -92,10 +92,10 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 {discussion.authorId && (
                   <CustomRoleBadge userId={discussion.authorId} />
                 )}
-                <span className="text-gray-500 text-sm">• {discussion.createdAt}</span>
+                <span className="text-gray-500 text-xs sm:text-sm whitespace-nowrap">• {discussion.createdAt}</span>
               </div>
               {discussion.statusMessage && (
-                <p className="text-sm text-gray-600 mt-1">"{discussion.statusMessage}"</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">"{discussion.statusMessage}"</p>
               )}
             </div>
           </div>
@@ -103,7 +103,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           {/* Actions Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -129,7 +129,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         
         {/* Content */}
         <div className="mb-4">
-          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-base">
+          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
             {discussion.body}
           </p>
         </div>
@@ -138,7 +138,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         {discussion.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {discussion.tags.map((tag, index) => (
-              <span key={index} className="text-blue-600 text-sm hover:underline cursor-pointer">
+              <span key={index} className="text-blue-600 text-xs sm:text-sm hover:underline cursor-pointer">
                 #{tag}
               </span>
             ))}
@@ -147,28 +147,28 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         
         {/* Actions Row */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <button
               onClick={() => onLike(discussion.id)}
-              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-sm ${
+              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm ${
                 discussion.isLiked ? 'text-red-500' : 'text-gray-500'
               }`}
             >
-              <Heart className={`h-5 w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
+              <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
               <span>{discussion.likesCount}</span>
             </button>
             
             <button
               onClick={handleShowReplies}
-              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-sm text-gray-500"
+              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm text-gray-500"
             >
-              <MessageCircle className="h-5 w-5" />
+              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>{discussion.repliesCount}</span>
             </button>
 
-            <button className="flex items-center gap-2 hover:text-gray-700 transition-colors text-sm text-gray-500">
-              <Share className="h-5 w-5" />
-              <span>Share</span>
+            <button className="flex items-center gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm text-gray-500">
+              <Share className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Share</span>
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Settings, HelpCircle, Search, Bell, Phone, Mail, Globe } from 'lucide-react';
+import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DiscussionCard from '@/components/DiscussionCard';
 import CreateDiscussion from '@/components/CreateDiscussion';
-import SearchAndFilter from '@/components/SearchAndFilter';
+import SearchResults from '@/components/SearchResults';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
+import { useSearch } from '@/hooks/useSearch';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -21,9 +22,9 @@ const Index = () => {
   const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
   const { userRole } = useUserRoles();
   const { profile } = useProfile();
-  const [filteredDiscussions, setFilteredDiscussions] = useState(discussions);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const { searchResults, loading: searchLoading, performSearch } = useSearch();
   const navigate = useNavigate();
 
   // Redirect to auth if not logged in
@@ -33,28 +34,18 @@ const Index = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Filter discussions based on search and tags
+  // Handle search
   useEffect(() => {
-    let filtered = discussions;
-
-    if (searchQuery) {
-      filtered = filtered.filter(discussion =>
-        discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.discussion_tags.some(tag => 
-          tag.tag.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
+    if (searchQuery.trim()) {
+      const debounceTimer = setTimeout(() => {
+        performSearch(searchQuery);
+        setShowSearchResults(true);
+      }, 300);
+      return () => clearTimeout(debounceTimer);
+    } else {
+      setShowSearchResults(false);
     }
-
-    if (activeFilters.length > 0) {
-      filtered = filtered.filter(discussion =>
-        discussion.discussion_tags.some(tag => activeFilters.includes(tag.tag))
-      );
-    }
-
-    setFilteredDiscussions(filtered);
-  }, [discussions, searchQuery, activeFilters]);
+  }, [searchQuery, performSearch]);
 
   const handleLogout = async () => {
     await signOut();
@@ -63,6 +54,10 @@ const Index = () => {
       description: "You've been successfully signed out."
     });
     navigate('/auth');
+  };
+
+  const handleEditProfile = () => {
+    navigate(`/profile/${user?.id}`);
   };
 
   if (authLoading) {
@@ -101,12 +96,11 @@ const Index = () => {
           {/* Search */}
           <div className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search..."
+                placeholder="Search discussions and users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-50/50 border-gray-200/50"
+                className="bg-gray-50/50 border-gray-200/50"
               />
             </div>
           </div>
@@ -132,13 +126,9 @@ const Index = () => {
                 <Bell className="h-4 w-4 mr-3" />
                 Notifications
               </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Settings
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <HelpCircle className="h-4 w-4 mr-3" />
-                Help & Support
+              <Button variant="ghost" className="w-full justify-start" onClick={handleEditProfile}>
+                <Edit className="h-4 w-4 mr-3" />
+                Edit Profile
               </Button>
             </div>
           </nav>
@@ -183,10 +173,9 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 flex">
-          {/* Center Feed */}
-          <div className="flex-1 max-w-2xl mx-auto p-6 overflow-y-auto">
+        {/* Main Content - Full Width */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
             {/* Header Tabs */}
             <div className="flex gap-8 mb-6 border-b border-gray-200/50">
               <button className="pb-3 border-b-2 border-blue-500 text-blue-600 font-medium">
@@ -197,145 +186,75 @@ const Index = () => {
               </button>
             </div>
 
+            {/* Search Results */}
+            {showSearchResults && (
+              <div className="mb-6">
+                <SearchResults 
+                  results={searchResults} 
+                  loading={searchLoading}
+                  onClose={() => setShowSearchResults(false)}
+                />
+              </div>
+            )}
+
             {/* Create Discussion */}
-            <div className="mb-6">
-              <CreateDiscussion onSubmit={createDiscussion} />
-            </div>
+            {!showSearchResults && (
+              <div className="mb-6">
+                <CreateDiscussion onSubmit={createDiscussion} />
+              </div>
+            )}
 
             {/* Discussion Feed */}
-            <div className="space-y-4">
-              {discussionsLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-500">Loading discussions...</p>
-                </div>
-              ) : filteredDiscussions.length > 0 ? (
-                filteredDiscussions.map((discussion) => {
-                  const authorName = discussion.profiles?.full_name || 
-                                   discussion.profiles?.username || 
-                                   'Anonymous User';
-                  const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-                  const tags = discussion.discussion_tags.map(dt => dt.tag);
-                  const timeAgo = new Date(discussion.created_at).toLocaleDateString();
-
-                  return (
-                    <DiscussionCard
-                      key={discussion.id}
-                      discussion={{
-                        id: discussion.id,
-                        title: discussion.title,
-                        body: discussion.body,
-                        author: authorName,
-                        authorId: discussion.author_id,
-                        authorInitials,
-                        createdAt: timeAgo,
-                        tags,
-                        repliesCount: discussion.replies_count,
-                        likesCount: discussion.likes_count,
-                        isLiked: discussion.user_liked || false
-                      }}
-                      onLike={toggleLike}
-                      onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
-                      onEdit={editDiscussion}
-                      onDelete={deleteDiscussion}
-                    />
-                  );
-                })
-              ) : (
-                <div className="text-center py-12">
-                  <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                  <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Sidebar - User Profile */}
-          <div className="w-80 bg-white/80 backdrop-blur-md border-l border-gray-200/50 p-6 overflow-y-auto">
-            {/* User Profile Card */}
-            <Card className="mb-6 overflow-hidden bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-              <CardContent className="p-0">
-                {/* Profile Header */}
-                <div className="relative">
-                  <div className="h-20 bg-gradient-to-r from-blue-400 to-purple-500"></div>
-                  <div className="absolute -bottom-8 left-6">
-                    <Avatar className="h-16 w-16 border-4 border-white">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
-                        {userInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+            {!showSearchResults && (
+              <div className="space-y-4">
+                {discussionsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Loading discussions...</p>
                   </div>
-                </div>
+                ) : discussions.length > 0 ? (
+                  discussions.map((discussion) => {
+                    const authorName = discussion.profiles?.full_name || 
+                                     discussion.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = discussion.discussion_tags.map(dt => dt.tag);
+                    const timeAgo = new Date(discussion.created_at).toLocaleDateString();
 
-                {/* Profile Info */}
-                <div className="pt-10 px-6 pb-6">
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">{userDisplayName}</h3>
-                    <p className="text-gray-500">@{profile?.username || 'user'}</p>
-                    <p className="text-sm text-gray-600 mt-1">Osaka, Japan 🎌</p>
+                    return (
+                      <DiscussionCard
+                        key={discussion.id}
+                        discussion={{
+                          id: discussion.id,
+                          title: discussion.title,
+                          body: discussion.body,
+                          author: authorName,
+                          authorId: discussion.author_id,
+                          authorInitials,
+                          createdAt: timeAgo,
+                          tags,
+                          repliesCount: discussion.replies_count,
+                          likesCount: discussion.likes_count,
+                          isLiked: discussion.user_liked || false,
+                          statusMessage: discussion.profiles?.status_message || undefined,
+                          authorAvatarUrl: discussion.profiles?.avatar_url || undefined
+                        }}
+                        onLike={toggleLike}
+                        onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                        onEdit={editDiscussion}
+                        onDelete={deleteDiscussion}
+                      />
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
+                    <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
                   </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-gray-900">{discussions.filter(d => d.author_id === user.id).length}</div>
-                      <div className="text-xs text-gray-500">Posts</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-gray-900">12.7K</div>
-                      <div className="text-xs text-gray-500">Followers</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-gray-900">221</div>
-                      <div className="text-xs text-gray-500">Following</div>
-                    </div>
-                  </div>
-
-                  {/* About Me */}
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">About Me</h4>
-                    <p className="text-sm text-gray-600">
-                      Hi there! 🔥 I'm X_AE_A-19, an AI enthusiast and fitness aficionado. When I'm not crunching numbers or optimizing algorithms, you can find me hitting the gym.
-                    </p>
-                    <button className="text-blue-600 text-sm mt-1 hover:underline">Read More</button>
-                  </div>
-
-                  {/* Story Highlights */}
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">My Story Highlights</h4>
-                    <div className="flex gap-2">
-                      {['France', 'Korea', 'USA', 'India', 'Sweden'].map((country, index) => (
-                        <div key={country} className="flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 mb-1"></div>
-                          <span className="text-xs text-gray-600">{country}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Contact Information */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Contact Information</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">+123 456 789 000</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">hello@slothui.com</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Globe className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">www.slothui.com</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
