@@ -62,9 +62,9 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
   return (
     <Card className="border border-gray-200 bg-white">
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         {/* Header with author info */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
@@ -112,11 +112,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         
         {/* Content */}
         <div className="mb-4">
-          {discussion.title && (
-            <h3 className="font-medium text-gray-900 mb-2">
-              {discussion.title}
-            </h3>
-          )}
           <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
             {discussion.body}
           </p>
@@ -134,24 +129,26 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         )}
         
         {/* Actions Row */}
-        <div className="flex items-center gap-6 text-gray-500">
-          <button
-            onClick={() => onLike(discussion.id)}
-            className={`flex items-center gap-2 hover:text-red-500 transition-colors ${
-              discussion.isLiked ? 'text-red-500' : ''
-            }`}
-          >
-            <Heart className={`h-5 w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm font-medium">{discussion.likesCount}</span>
-          </button>
-          
-          <button
-            onClick={() => setShowReplies(!showReplies)}
-            className="flex items-center gap-2 hover:text-blue-500 transition-colors"
-          >
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">{discussion.repliesCount}</span>
-          </button>
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => onLike(discussion.id)}
+              className={`flex items-center gap-2 hover:text-red-500 transition-colors text-sm ${
+                discussion.isLiked ? 'text-red-500' : 'text-gray-500'
+              }`}
+            >
+              <Heart className={`h-5 w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
+              <span className="font-medium">{discussion.likesCount} like{discussion.likesCount !== 1 ? 's' : ''}</span>
+            </button>
+            
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-sm text-gray-500"
+            >
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-medium">{discussion.repliesCount} repl{discussion.repliesCount !== 1 ? 'ies' : 'y'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Reply Section */}
@@ -191,7 +188,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </Card>
   );
