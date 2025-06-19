@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -140,9 +139,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             <span className="text-sm">{discussion.likesCount}</span>
           </Button>
 
-          <div className="flex-1 ml-4">
-            <ReplySection discussionId={discussion.id} />
-          </div>
+          <ReplySection discussionId={discussion.id} />
         </div>
       </CardContent>
 
