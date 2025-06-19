@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut, Shield } from 'lucide-react';
@@ -249,6 +248,7 @@ const Index = () => {
                         title: discussion.title,
                         body: discussion.body,
                         author: authorName,
+                        authorId: discussion.author_id,
                         authorInitials,
                         createdAt: timeAgo,
                         tags,

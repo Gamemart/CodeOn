@@ -25,9 +25,10 @@ interface DiscussionCardProps {
   discussion: Discussion;
   onReply: (discussionId: string) => void;
   onLike: (discussionId: string) => void;
+  onAuthorClick?: () => void;
 }
 
-const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) => {
+const DiscussionCard = ({ discussion, onReply, onLike, onAuthorClick }: DiscussionCardProps) => {
   return (
     <Card className="hover:shadow-md transition-shadow bg-white/80 backdrop-blur-sm border border-white/20">
       <CardHeader className="pb-3">
@@ -38,7 +39,12 @@ const DiscussionCard = ({ discussion, onReply, onLike }: DiscussionCardProps) =>
             </AvatarFallback>
           </Avatar>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-gray-900">{discussion.author}</span>
+            <span 
+              className="font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
+              onClick={onAuthorClick}
+            >
+              {discussion.author}
+            </span>
             {discussion.authorId && (
               <CustomRoleBadge userId={discussion.authorId} />
             )}
