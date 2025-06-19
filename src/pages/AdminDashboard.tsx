@@ -1,252 +1,59 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { toast } from '@/hooks/use-toast';
+import { useAdminData } from '@/hooks/useAdminData';
+import { updateUserRole, moderateUser, createCustomRole, deactivateModerationAction } from '@/utils/adminOperations';
 import UserManagementTab from '@/components/admin/UserManagementTab';
 import CustomRolesTab from '@/components/admin/CustomRolesTab';
 import ModerationTab from '@/components/admin/ModerationTab';
-
-interface User {
-  id: string;
-  username: string | null;
-  full_name: string | null;
-  role: string | null;
-}
-
-interface CustomRole {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string;
-  created_at: string;
-}
-
-interface ModerationAction {
-  id: string;
-  user_id: string;
-  action_type: string;
-  reason: string | null;
-  expires_at: string | null;
-  created_at: string;
-  is_active: boolean;
-  username: string | null;
-  full_name: string | null;
-}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { userRole, loading: roleLoading } = useUserRoles();
-  const [users, setUsers] = useState<User[]>([]);
-  const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
-  const [moderationActions, setModerationActions] = useState<ModerationAction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, customRoles, moderationActions, loading, refetchData } = useAdminData();
 
-  useEffect(() => {
-    // Wait for auth and role loading to complete
+  // Handle auth and role checks
+  React.useEffect(() => {
     if (authLoading || roleLoading) return;
 
-    // Redirect if not authenticated
     if (!user) {
       navigate('/auth');
       return;
     }
 
-    // Redirect if not admin
     if (userRole !== 'admin') {
       navigate('/forbidden');
       return;
     }
-
-    fetchData();
   }, [user, userRole, authLoading, roleLoading, navigate]);
 
-  const fetchData = async () => {
-    try {
-      // Fetch users with their roles using separate queries
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, username, full_name');
-
-      if (usersError) throw usersError;
-
-      // Fetch user roles separately
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
-
-      // Combine users with their roles
-      const usersWithRoles = (usersData || []).map(user => ({
-        id: user.id,
-        username: user.username,
-        full_name: user.full_name,
-        role: rolesData?.find(role => role.user_id === user.id)?.role || 'user'
-      }));
-
-      // Fetch custom roles
-      const { data: customRolesData, error: customRolesError } = await supabase
-        .from('custom_roles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (customRolesError) throw customRolesError;
-
-      // Fetch moderation actions
-      const { data: moderationData, error: moderationError } = await supabase
-        .from('user_moderation')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (moderationError) throw moderationError;
-
-      // Get profile data for moderated users
-      const moderationWithProfiles = await Promise.all(
-        (moderationData || []).map(async (action) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, full_name')
-            .eq('id', action.user_id)
-            .single();
-
-          return {
-            ...action,
-            username: profile?.username || null,
-            full_name: profile?.full_name || null
-          };
-        })
-      );
-
-      setUsers(usersWithRoles);
-      setCustomRoles(customRolesData || []);
-      setModerationActions(moderationWithProfiles);
-    } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load admin dashboard data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleUpdateUserRole = async (userId: string, newRole: 'user' | 'moderator' | 'admin') => {
+    if (!user) return;
+    const success = await updateUserRole(userId, newRole, user.id);
+    if (success) refetchData();
   };
 
-  const updateUserRole = async (userId: string, newRole: 'user' | 'moderator' | 'admin') => {
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role: newRole,
-          assigned_by: user!.id
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Role updated",
-        description: "User role has been updated successfully"
-      });
-
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error updating role",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleModerateUser = async (userId: string, action: 'ban' | 'mute', reason?: string) => {
+    if (!user) return;
+    const success = await moderateUser(userId, action, user.id, reason);
+    if (success) refetchData();
   };
 
-  const moderateUser = async (userId: string, action: 'ban' | 'mute', reason?: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_moderation')
-        .insert({
-          user_id: userId,
-          moderator_id: user!.id,
-          action_type: action,
-          reason: reason || null
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: `User ${action}ned`,
-        description: `User has been ${action}ned successfully`
-      });
-
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error moderating user",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleCreateRole = async (name: string, description: string, color: string) => {
+    if (!user) return;
+    const success = await createCustomRole(name, description, color, user.id);
+    if (success) refetchData();
   };
 
-  const createCustomRole = async (name: string, description: string, color: string) => {
-    if (!name.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('custom_roles')
-        .insert({
-          name: name.trim(),
-          description: description.trim() || null,
-          color: color,
-          created_by: user!.id
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Role created",
-        description: `Custom role "${name}" has been created`
-      });
-
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error creating role",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const deactivateModerationAction = async (actionId: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_moderation')
-        .update({ is_active: false })
-        .eq('id', actionId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Action deactivated",
-        description: "Moderation action has been deactivated"
-      });
-
-      fetchData();
-    } catch (error: any) {
-      toast({
-        title: "Error deactivating action",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleDeactivateAction = async (actionId: string) => {
+    const success = await deactivateModerationAction(actionId);
+    if (success) refetchData();
   };
 
   // Show loading while checking auth and role
@@ -302,22 +109,22 @@ const AdminDashboard = () => {
           <TabsContent value="users" className="space-y-6">
             <UserManagementTab 
               users={users}
-              onUpdateUserRole={updateUserRole}
-              onModerateUser={moderateUser}
+              onUpdateUserRole={handleUpdateUserRole}
+              onModerateUser={handleModerateUser}
             />
           </TabsContent>
 
           <TabsContent value="roles" className="space-y-6">
             <CustomRolesTab 
               customRoles={customRoles}
-              onCreateRole={createCustomRole}
+              onCreateRole={handleCreateRole}
             />
           </TabsContent>
 
           <TabsContent value="moderation" className="space-y-6">
             <ModerationTab 
               moderationActions={moderationActions}
-              onDeactivateAction={deactivateModerationAction}
+              onDeactivateAction={handleDeactivateAction}
             />
           </TabsContent>
         </Tabs>
