@@ -27,13 +27,29 @@ export const useMessages = (chatId: string | null) => {
   const [loading, setLoading] = useState(false);
 
   const fetchMessages = async () => {
-    if (!chatId) return;
+    if (!chatId || !user) {
+      console.log('Cannot fetch messages: missing chatId or user', { chatId, user: !!user });
+      return;
+    }
 
     setLoading(true);
     try {
       console.log('Fetching messages for chat:', chatId);
       
-      // First get messages
+      // First verify user is participant in this chat
+      const { data: participantCheck } = await supabase
+        .from('chat_participants')
+        .select('user_id')
+        .eq('chat_id', chatId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!participantCheck) {
+        console.error('User is not a participant in this chat');
+        throw new Error('You are not authorized to view this chat');
+      }
+
+      // Get messages for this chat
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
@@ -95,6 +111,24 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Sending message to chat:', chatId, 'content:', content.trim());
       
+      // First verify user is participant in this chat
+      const { data: participantCheck } = await supabase
+        .from('chat_participants')
+        .select('user_id')
+        .eq('chat_id', chatId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!participantCheck) {
+        console.error('User is not a participant in this chat');
+        toast({
+          title: "Error",
+          description: "You are not authorized to send messages to this chat",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -130,6 +164,24 @@ export const useMessages = (chatId: string | null) => {
     if (!chatId || !user) return;
 
     try {
+      // First verify user is participant in this chat
+      const { data: participantCheck } = await supabase
+        .from('chat_participants')
+        .select('user_id')
+        .eq('chat_id', chatId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!participantCheck) {
+        console.error('User is not a participant in this chat');
+        toast({
+          title: "Error",
+          description: "You are not authorized to send files to this chat",
+          variant: "destructive"
+        });
+        return;
+      }
+
       let messageType: 'image' | 'file' | 'video' = 'file';
       
       if (file.type.startsWith('image/')) {
@@ -198,7 +250,7 @@ export const useMessages = (chatId: string | null) => {
       console.log('Unsubscribing from real-time messages for chat:', chatId);
       supabase.removeChannel(messagesChannel);
     };
-  }, [chatId]);
+  }, [chatId, user]);
 
   return {
     messages,
