@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { MessageCircle, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Chat {
@@ -26,9 +28,10 @@ interface ChatListProps {
   chats: Chat[];
   loading: boolean;
   onSelectChat: (chatId: string) => void;
+  onNewChat: () => void;
 }
 
-const ChatList = ({ chats, loading, onSelectChat }: ChatListProps) => {
+const ChatList = ({ chats, loading, onSelectChat, onNewChat }: ChatListProps) => {
   const { user } = useAuth();
 
   const getChatName = (chat: Chat) => {
@@ -78,9 +81,12 @@ const ChatList = ({ chats, loading, onSelectChat }: ChatListProps) => {
   if (chats.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-        <div className="text-gray-400 mb-2">💬</div>
-        <p className="text-sm text-gray-500">No chats yet</p>
-        <p className="text-xs text-gray-400">Start a conversation!</p>
+        <MessageCircle className="h-12 w-12 text-gray-400 mb-4" />
+        <p className="text-sm text-gray-500 mb-4">No chats yet</p>
+        <Button onClick={onNewChat} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Start a conversation
+        </Button>
       </div>
     );
   }

@@ -17,6 +17,7 @@ import { useSearch } from '@/hooks/useSearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
 import FloatingChatHead from '@/components/chat/FloatingChatHead';
+import ChatWindow from '@/components/chat/ChatWindow';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -28,6 +29,7 @@ const Index = () => {
   const { searchResults, loading: searchLoading, performSearch } = useSearch();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [showMobileChat, setShowMobileChat] = useState(false);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -83,7 +85,7 @@ const Index = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 pb-20">
         {/* Mobile Header */}
         <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 p-4">
           <div className="flex items-center justify-between mb-4">
@@ -227,9 +229,16 @@ const Index = () => {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/50 p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/50 p-4 z-50">
           <div className="flex justify-around items-center">
             <button className="flex flex-col items-center space-y-1">
+              <Home className="h-5 w-5 text-blue-600" />
+              <span className="text-xs text-blue-600">Home</span>
+            </button>
+            <button 
+              onClick={() => setShowMobileChat(true)}
+              className="flex flex-col items-center space-y-1"
+            >
               <MessageCircle className="h-5 w-5 text-gray-600" />
               <span className="text-xs text-gray-600">Chats</span>
             </button>
@@ -248,8 +257,14 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Floating Chat Head */}
-        <FloatingChatHead />
+        {/* Mobile Chat Window */}
+        {showMobileChat && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm h-96">
+              <ChatWindow onClose={() => setShowMobileChat(false)} />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -433,7 +448,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Floating Chat Head */}
+      {/* Floating Chat Head for Desktop */}
       <FloatingChatHead />
     </div>
   );
