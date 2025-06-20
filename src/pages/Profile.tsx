@@ -132,6 +132,22 @@ const Profile = () => {
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
   const isOwnProfile = currentUser?.id === userId;
   const canModerate = userRole === 'admin' || userRole === 'moderator';
+  const alignment = profile.profile_alignment || 'left';
+
+  const getAlignmentClasses = () => {
+    switch (alignment) {
+      case 'center':
+        return 'text-center items-center';
+      case 'right':
+        return 'text-right items-end';
+      default:
+        return 'text-left items-start';
+    }
+  };
+
+  const getFlexDirection = () => {
+    return alignment === 'center' ? 'flex-col' : 'flex-row';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -152,94 +168,123 @@ const Profile = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Profile Card */}
-        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-white shadow-lg">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl overflow-hidden">
+          <CardContent className="p-4 sm:p-6">
+            <div className={`flex ${getFlexDirection()} ${alignment === 'center' ? 'gap-6' : 'gap-4'} ${getAlignmentClasses()}`}>
+              {/* Avatar - positioned first in center alignment for pyramid structure */}
+              {alignment === 'center' && (
+                <div className="flex justify-center mb-4">
+                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg">
+                    <AvatarImage src={profile.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              )}
               
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
+              {/* Avatar for left/right alignment */}
+              {alignment !== 'center' && (
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-4 border-white shadow-lg">
+                  <AvatarImage src={profile.avatar_url || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              
+              {/* Profile Info */}
+              <div className={`flex-1 min-w-0 ${alignment === 'center' ? 'w-full' : ''}`}>
+                {/* Name and Role */}
+                <div className={`flex ${alignment === 'center' ? 'flex-col' : 'flex-row'} ${alignment === 'center' ? 'items-center' : 'items-start'} gap-2 mb-2`}>
+                  <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 ${alignment === 'center' ? 'text-center' : 'truncate'}`}>
                     {displayName}
                   </h1>
-                  {userId && <CustomRoleBadge userId={userId} />}
+                  {userId && (
+                    <div className={alignment === 'center' ? 'flex justify-center' : ''}>
+                      <CustomRoleBadge userId={userId} />
+                    </div>
+                  )}
                 </div>
                 
+                {/* Username */}
                 {profile.username && (
-                  <p className="text-gray-500 text-lg mb-2">@{profile.username}</p>
+                  <p className={`text-gray-500 text-base sm:text-lg mb-2 ${alignment === 'center' ? 'text-center' : ''}`}>
+                    @{profile.username}
+                  </p>
                 )}
                 
+                {/* Status Message */}
                 {profile.status_message && (
-                  <p className="text-gray-700 mb-4">{profile.status_message}</p>
+                  <p className={`text-gray-700 mb-4 text-sm sm:text-base ${alignment === 'center' ? 'text-center max-w-md mx-auto' : ''}`}>
+                    {profile.status_message}
+                  </p>
                 )}
                 
                 {/* Stats */}
-                <div className="flex items-center gap-6 text-sm text-gray-600">
+                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-4`}>
                   <span><strong>{followers.length}</strong> Followers</span>
                   <span><strong>{following.length}</strong> Following</span>
                   <span><strong>{discussions.length}</strong> Posts</span>
-                  <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
+                  <span className="hidden sm:inline">Joined {new Date(profile.created_at).toLocaleDateString()}</span>
                 </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                {isOwnProfile ? (
-                  <Button
-                    onClick={() => setIsEditModalOpen(true)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                ) : currentUser ? (
-                  <>
+                
+                {/* Action Buttons */}
+                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-2`}>
+                  {isOwnProfile ? (
                     <Button
-                      onClick={toggleFollow}
-                      variant={isFollowing ? "outline" : "default"}
+                      onClick={() => setIsEditModalOpen(true)}
+                      variant="outline"
                       size="sm"
+                      className="text-xs sm:text-sm"
                     >
-                      {isFollowing ? (
-                        <>
-                          <UserMinus className="h-4 w-4 mr-2" />
-                          Unfollow
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Follow
-                        </>
-                      )}
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Edit Profile
                     </Button>
-                    
-                    {canModerate && (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moderateUser(userId!, 'ban')}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <Ban className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moderateUser(userId!, 'mute')}
-                          className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                        >
-                          <VolumeX className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : null}
+                  ) : currentUser ? (
+                    <>
+                      <Button
+                        onClick={toggleFollow}
+                        variant={isFollowing ? "outline" : "default"}
+                        size="sm"
+                        className="text-xs sm:text-sm"
+                      >
+                        {isFollowing ? (
+                          <>
+                            <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Unfollow
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
+                      
+                      {canModerate && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => moderateUser(userId!, 'ban')}
+                            className="text-red-600 border-red-200 hover:bg-red-50 p-2"
+                          >
+                            <Ban className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => moderateUser(userId!, 'mute')}
+                            className="text-orange-600 border-orange-200 hover:bg-orange-50 p-2"
+                          >
+                            <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -275,7 +320,7 @@ const Profile = () => {
               );
             })
           ) : (
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl">
+            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardContent className="text-center py-12">
                 <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No discussions yet</h3>
