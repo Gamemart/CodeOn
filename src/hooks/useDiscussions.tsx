@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -37,6 +36,27 @@ export const useDiscussions = () => {
   const [discussions, setDiscussions] = useState<DiscussionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `discussions/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('profile-media')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('profile-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const fetchDiscussions = useCallback(async () => {
     try {
@@ -85,12 +105,24 @@ export const useDiscussions = () => {
             userLiked = !!userLikeData;
           }
 
-          // Parse image URLs from body if they exist
+          // Extract image URLs from body if they exist
           let imageUrls: string[] = [];
           if (discussion.body) {
-            const imageUrlMatches = discussion.body.match(/blob:[^\s)]+/g);
-            if (imageUrlMatches) {
-              imageUrls = imageUrlMatches;
+            // Look for markdown image syntax or direct URLs
+            const markdownImageMatches = discussion.body.match(/!\[.*?\]\((.*?)\)/g);
+            const urlMatches = discussion.body.match(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|gif|webp)/gi);
+            
+            if (markdownImageMatches) {
+              markdownImageMatches.forEach((match: string) => {
+                const urlMatch = match.match(/\((.*?)\)/);
+                if (urlMatch && urlMatch[1]) {
+                  imageUrls.push(urlMatch[1]);
+                }
+              });
+            }
+            
+            if (urlMatches) {
+              imageUrls = [...imageUrls, ...urlMatches];
             }
           }
 
@@ -129,10 +161,12 @@ export const useDiscussions = () => {
 
       let finalBody = newDiscussion.body;
 
-      // Handle image uploads by converting to blob URLs for now
-      // In a production app, you'd upload to Supabase Storage
+      // Handle image uploads
       if (newDiscussion.images && newDiscussion.images.length > 0) {
-        const imageUrls = newDiscussion.images.map(image => URL.createObjectURL(image));
+        const uploadPromises = newDiscussion.images.map(image => uploadImage(image));
+        const imageUrls = await Promise.all(uploadPromises);
+        
+        // Add images to body as markdown
         const imageSection = imageUrls.map(url => `![Image](${url})`).join('\n');
         finalBody = `${newDiscussion.body}\n\n${imageSection}`;
       }
