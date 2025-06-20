@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,34 +31,27 @@ export const useMessages = (chatId: string | null) => {
 
     setLoading(true);
     try {
-      // Get messages first
+      // Get messages with profiles joined
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select('*')
+        .select(`
+          *,
+          profiles:sender_id (
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
-      // Get unique sender IDs
-      const senderIds = [...new Set((messagesData || []).map(msg => msg.sender_id))];
-      
-      // Get profiles for all senders
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, username, full_name, avatar_url')
-        .in('id', senderIds);
-
-      // Create a map of profiles for quick lookup
-      const profilesMap = new Map(
-        (profilesData || []).map(profile => [profile.id, profile])
-      );
-
-      // Combine messages with profile data
+      // Transform the data to match our interface
       const typedMessages: Message[] = (messagesData || []).map(msg => ({
         ...msg,
         message_type: (msg.message_type as 'text' | 'image' | 'file' | 'video') || 'text',
-        profiles: profilesMap.get(msg.sender_id) || {
+        profiles: Array.isArray(msg.profiles) ? msg.profiles[0] : msg.profiles || {
           username: null,
           full_name: null,
           avatar_url: null
