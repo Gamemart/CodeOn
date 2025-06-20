@@ -31,27 +31,34 @@ export const useMessages = (chatId: string | null) => {
 
     setLoading(true);
     try {
-      // Get messages with profiles joined
+      // First get messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select(`
-          *,
-          profiles:sender_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
-      // Transform the data to match our interface
+      // Get unique sender IDs
+      const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+
+      // Get profiles for all senders
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', senderIds);
+
+      // Create profiles map
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
+      );
+
+      // Combine messages with profiles
       const typedMessages: Message[] = (messagesData || []).map(msg => ({
         ...msg,
         message_type: (msg.message_type as 'text' | 'image' | 'file' | 'video') || 'text',
-        profiles: Array.isArray(msg.profiles) ? msg.profiles[0] : msg.profiles || {
+        profiles: profilesMap.get(msg.sender_id) || {
           username: null,
           full_name: null,
           avatar_url: null
@@ -75,6 +82,8 @@ export const useMessages = (chatId: string | null) => {
     if (!chatId || !user || !content.trim()) return;
 
     try {
+      console.log('Sending message to chat:', chatId);
+      
       const { error } = await supabase
         .from('messages')
         .insert({
@@ -84,7 +93,12 @@ export const useMessages = (chatId: string | null) => {
           message_type: 'text'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting message:', error);
+        throw error;
+      }
+
+      console.log('Message sent successfully');
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
