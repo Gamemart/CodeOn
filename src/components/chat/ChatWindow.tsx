@@ -18,15 +18,21 @@ const ChatWindow = ({ onClose }: ChatWindowProps) => {
   const [showUserList, setShowUserList] = useState(false);
 
   const handleSelectChat = (chatId: string) => {
+    console.log('Selecting chat:', chatId);
     setSelectedChatId(chatId);
     setShowUserList(false);
   };
 
   const handleSelectUser = async (userId: string) => {
-    const chatId = await createDirectChat(userId);
-    if (chatId) {
-      setSelectedChatId(chatId);
-      setShowUserList(false);
+    console.log('Creating chat with user:', userId);
+    try {
+      const chatId = await createDirectChat(userId);
+      if (chatId) {
+        setSelectedChatId(chatId);
+        setShowUserList(false);
+      }
+    } catch (error) {
+      console.error('Failed to create chat:', error);
     }
   };
 
@@ -65,6 +71,7 @@ const ChatWindow = ({ onClose }: ChatWindowProps) => {
               size="sm"
               onClick={handleNewChat}
               className="h-8 px-2 text-blue-600 hover:text-blue-700"
+              disabled={loading}
             >
               New
             </Button>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,120 +28,90 @@ interface Chat {
 }
 
 export const useChats = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchChats = async () => {
-    if (!user) return;
+    if (!user || !session) {
+      console.log('No user or session, skipping chat fetch');
+      setChats([]);
+      setLoading(false);
+      return;
+    }
 
     try {
-      // First, get chats where the user is a participant
-      const { data: userChats, error: chatsError } = await supabase
-        .from('chat_participants')
-        .select('chat_id')
-        .eq('user_id', user.id);
+      setLoading(true);
+      console.log('Fetching chats for user:', user.id);
 
-      if (chatsError) throw chatsError;
+      // Use the edge function to fetch chats safely
+      const { data, error } = await supabase.functions.invoke('get_user_chats', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-      if (!userChats || userChats.length === 0) {
-        setChats([]);
-        return;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
       }
 
-      const chatIds = userChats.map(uc => uc.chat_id);
-
-      // Get chat details
-      const { data: chatsData, error: chatsDetailError } = await supabase
-        .from('chats')
-        .select('*')
-        .in('id', chatIds)
-        .order('updated_at', { ascending: false });
-
-      if (chatsDetailError) throw chatsDetailError;
-
-      // Get all participants for these chats
-      const { data: participantsData, error: participantsError } = await supabase
-        .from('chat_participants')
-        .select('chat_id, user_id')
-        .in('chat_id', chatIds);
-
-      if (participantsError) throw participantsError;
-
-      // Get unique user IDs from participants
-      const userIds = [...new Set(participantsData?.map(p => p.user_id) || [])];
-
-      // Get profiles for all participants
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, username, full_name, avatar_url')
-        .in('id', userIds);
-
-      // Create profiles map
-      const profilesMap = new Map(
-        (profilesData || []).map(profile => [profile.id, profile])
-      );
-
-      // Get last message for each chat
-      const chatsWithLastMessage = await Promise.all(
-        (chatsData || []).map(async (chat) => {
-          const { data: lastMessage } = await supabase
-            .from('messages')
-            .select('content, created_at, sender_id, message_type')
-            .eq('chat_id', chat.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          // Get participants for this chat
-          const chatParticipants = (participantsData || [])
-            .filter(p => p.chat_id === chat.id)
-            .map(p => ({
-              user_id: p.user_id,
-              profiles: profilesMap.get(p.user_id) || {
-                username: null,
-                full_name: null,
-                avatar_url: null
-              }
-            }));
-
-          return {
-            ...chat,
-            type: chat.type as 'direct' | 'group',
-            participants: chatParticipants,
-            last_message: lastMessage || undefined
-          };
-        })
-      );
-
-      setChats(chatsWithLastMessage);
+      console.log('Chats fetched successfully:', data);
+      setChats(data.data || []);
     } catch (error) {
       console.error('Error fetching chats:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to load chats';
+      if (error.message?.includes('not authenticated')) {
+        errorMessage = 'Please log in to view your chats';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection';
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to load chats",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      // Set empty chats array on error to prevent UI issues
+      setChats([]);
     } finally {
       setLoading(false);
     }
   };
 
   const createDirectChat = async (otherUserId: string) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a chat",
+        variant: "destructive"
+      });
+      return null;
+    }
+
     try {
+      console.log('Creating direct chat with user:', otherUserId);
+      
       const { data, error } = await supabase.rpc('get_or_create_direct_chat', {
         other_user_id: otherUserId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating direct chat:', error);
+        throw error;
+      }
       
+      console.log('Direct chat created/found:', data);
       await fetchChats();
       return data;
     } catch (error) {
       console.error('Error creating direct chat:', error);
       toast({
         title: "Error",
-        description: "Failed to create chat",
+        description: "Failed to create chat. Please try again.",
         variant: "destructive"
       });
       return null;
@@ -148,9 +119,18 @@ export const useChats = () => {
   };
 
   const createGroupChat = async (name: string, participantIds: string[]) => {
-    if (!user) return null;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a group chat",
+        variant: "destructive"
+      });
+      return null;
+    }
 
     try {
+      console.log('Creating group chat:', name, participantIds);
+      
       const { data: chat, error: chatError } = await supabase
         .from('chats')
         .insert({
@@ -175,13 +155,14 @@ export const useChats = () => {
 
       if (participantsError) throw participantsError;
 
+      console.log('Group chat created successfully:', chat.id);
       await fetchChats();
       return chat.id;
     } catch (error) {
       console.error('Error creating group chat:', error);
       toast({
         title: "Error",
-        description: "Failed to create group chat",
+        description: "Failed to create group chat. Please try again.",
         variant: "destructive"
       });
       return null;
@@ -189,38 +170,16 @@ export const useChats = () => {
   };
 
   useEffect(() => {
-    fetchChats();
-
-    // Set up real-time subscriptions
-    const chatsChannel = supabase
-      .channel('chats-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'chats'
-      }, () => {
-        fetchChats();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'chat_participants'
-      }, () => {
-        fetchChats();
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages'
-      }, () => {
-        fetchChats();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(chatsChannel);
-    };
-  }, [user]);
+    // Only fetch chats if user is authenticated
+    if (user && session) {
+      console.log('User authenticated, fetching chats');
+      fetchChats();
+    } else {
+      console.log('User not authenticated, clearing chats');
+      setChats([]);
+      setLoading(false);
+    }
+  }, [user, session]);
 
   return {
     chats,
