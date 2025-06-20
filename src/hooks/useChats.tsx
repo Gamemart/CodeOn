@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,22 +35,55 @@ export const useChats = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First, get chats where the user is a participant
+      const { data: userChats, error: chatsError } = await supabase
+        .from('chat_participants')
+        .select('chat_id')
+        .eq('user_id', user.id);
+
+      if (chatsError) throw chatsError;
+
+      if (!userChats || userChats.length === 0) {
+        setChats([]);
+        return;
+      }
+
+      const chatIds = userChats.map(uc => uc.chat_id);
+
+      // Get chat details
+      const { data: chatsData, error: chatsDetailError } = await supabase
         .from('chats')
-        .select(`
-          *,
-          chat_participants!inner(
-            user_id,
-            profiles!chat_participants_user_id_fkey(username, full_name, avatar_url)
-          )
-        `)
+        .select('*')
+        .in('id', chatIds)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (chatsDetailError) throw chatsDetailError;
+
+      // Get all participants for these chats
+      const { data: participantsData, error: participantsError } = await supabase
+        .from('chat_participants')
+        .select('chat_id, user_id')
+        .in('chat_id', chatIds);
+
+      if (participantsError) throw participantsError;
+
+      // Get unique user IDs from participants
+      const userIds = [...new Set(participantsData?.map(p => p.user_id) || [])];
+
+      // Get profiles for all participants
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', userIds);
+
+      // Create profiles map
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
+      );
 
       // Get last message for each chat
       const chatsWithLastMessage = await Promise.all(
-        (data || []).map(async (chat) => {
+        (chatsData || []).map(async (chat) => {
           const { data: lastMessage } = await supabase
             .from('messages')
             .select('content, created_at, sender_id, message_type')
@@ -60,17 +92,22 @@ export const useChats = () => {
             .limit(1)
             .single();
 
-          return {
-            ...chat,
-            type: chat.type as 'direct' | 'group',
-            participants: chat.chat_participants.map((cp: any) => ({
-              user_id: cp.user_id,
-              profiles: cp.profiles || {
+          // Get participants for this chat
+          const chatParticipants = (participantsData || [])
+            .filter(p => p.chat_id === chat.id)
+            .map(p => ({
+              user_id: p.user_id,
+              profiles: profilesMap.get(p.user_id) || {
                 username: null,
                 full_name: null,
                 avatar_url: null
               }
-            })),
+            }));
+
+          return {
+            ...chat,
+            type: chat.type as 'direct' | 'group',
+            participants: chatParticipants,
             last_message: lastMessage || undefined
           };
         })
