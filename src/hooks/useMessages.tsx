@@ -31,6 +31,8 @@ export const useMessages = (chatId: string | null) => {
 
     setLoading(true);
     try {
+      console.log('Fetching messages for chat:', chatId);
+      
       // First get messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
@@ -38,7 +40,12 @@ export const useMessages = (chatId: string | null) => {
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
 
-      if (messagesError) throw messagesError;
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+        throw messagesError;
+      }
+
+      console.log('Messages fetched:', messagesData);
 
       // Get unique sender IDs
       const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
@@ -66,6 +73,7 @@ export const useMessages = (chatId: string | null) => {
       }));
       
       setMessages(typedMessages);
+      console.log('Messages state updated with', typedMessages.length, 'messages');
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -79,26 +87,35 @@ export const useMessages = (chatId: string | null) => {
   };
 
   const sendMessage = async (content: string) => {
-    if (!chatId || !user || !content.trim()) return;
+    if (!chatId || !user || !content.trim()) {
+      console.log('Cannot send message: missing data', { chatId, user: !!user, content: content.trim() });
+      return;
+    }
 
     try {
-      console.log('Sending message to chat:', chatId);
+      console.log('Sending message to chat:', chatId, 'content:', content.trim());
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           chat_id: chatId,
           sender_id: user.id,
           content: content.trim(),
           message_type: 'text'
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error inserting message:', error);
         throw error;
       }
 
-      console.log('Message sent successfully');
+      console.log('Message sent successfully:', data);
+      
+      // Immediately refresh messages to show the new message
+      await fetchMessages();
+      
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -121,7 +138,9 @@ export const useMessages = (chatId: string | null) => {
         messageType = 'video';
       }
 
-      const { error } = await supabase
+      console.log('Sending file message:', { messageType, fileName: file.name });
+
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           chat_id: chatId,
@@ -130,9 +149,17 @@ export const useMessages = (chatId: string | null) => {
           file_url: fileUrl,
           file_name: file.name,
           file_size: file.size
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      console.log('File message sent successfully:', data);
+      
+      // Immediately refresh messages
+      await fetchMessages();
+      
     } catch (error) {
       console.error('Error sending file message:', error);
       toast({
@@ -144,9 +171,12 @@ export const useMessages = (chatId: string | null) => {
   };
 
   useEffect(() => {
-    fetchMessages();
+    if (!chatId) {
+      setMessages([]);
+      return;
+    }
 
-    if (!chatId) return;
+    fetchMessages();
 
     // Set up real-time subscription for new messages
     const messagesChannel = supabase
@@ -156,12 +186,16 @@ export const useMessages = (chatId: string | null) => {
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`
-      }, () => {
-        fetchMessages();
+      }, (payload) => {
+        console.log('Real-time message received:', payload);
+        fetchMessages(); // Refresh messages when new ones arrive
       })
       .subscribe();
 
+    console.log('Subscribed to real-time messages for chat:', chatId);
+
     return () => {
+      console.log('Unsubscribing from real-time messages for chat:', chatId);
       supabase.removeChannel(messagesChannel);
     };
   }, [chatId]);
