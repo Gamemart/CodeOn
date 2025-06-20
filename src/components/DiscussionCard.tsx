@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Share, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +25,7 @@ interface Discussion {
   likesCount: number;
   isLiked: boolean;
   statusMessage?: string;
+  image_urls?: string[];
 }
 
 interface DiscussionCardProps {
@@ -45,6 +45,25 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   const [showReplies, setShowReplies] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
+
+  // Extract image URLs from body content
+  const extractImageUrls = (content: string): string[] => {
+    const imageRegex = /!\[.*?\]\((blob:[^\s)]+)\)/g;
+    const matches = [];
+    let match;
+    while ((match = imageRegex.exec(content)) !== null) {
+      matches.push(match[1]);
+    }
+    return matches;
+  };
+
+  // Remove image markdown from body for display
+  const cleanBodyText = (content: string): string => {
+    return content.replace(/!\[.*?\]\(blob:[^\s)]+\)/g, '').trim();
+  };
+
+  const imageUrls = discussion.image_urls || extractImageUrls(discussion.body);
+  const cleanBody = cleanBodyText(discussion.body);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -197,8 +216,28 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             <div>
               {/* Display Body */}
               <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
-                {discussion.body}
+                {cleanBody}
               </p>
+              
+              {/* Display Images */}
+              {imageUrls.length > 0 && (
+                <div className={`mt-3 grid gap-2 ${
+                  imageUrls.length === 1 ? 'grid-cols-1' :
+                  imageUrls.length === 2 ? 'grid-cols-2' :
+                  imageUrls.length === 3 ? 'grid-cols-3' :
+                  'grid-cols-2 sm:grid-cols-3'
+                }`}>
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative">
+                      <img 
+                        src={url} 
+                        alt={`Discussion image ${index + 1}`} 
+                        className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

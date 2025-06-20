@@ -37,7 +37,7 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Fetching messages for chat:', chatId);
       
-      // Get messages for this chat - RLS will handle authorization
+      // Get messages for this chat
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
@@ -46,9 +46,7 @@ export const useMessages = (chatId: string | null) => {
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
-        // Don't throw error immediately, might be empty chat
         if (messagesError.code === 'PGRST301') {
-          // No rows found - empty chat
           setMessages([]);
           return;
         }
@@ -111,7 +109,6 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Sending message to chat:', chatId, 'content:', content.trim());
       
-      // Let RLS handle authorization - don't do client-side checks
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -126,11 +123,19 @@ export const useMessages = (chatId: string | null) => {
       if (error) {
         console.error('Error inserting message:', error);
         
-        // Handle specific error cases
-        if (error.code === '42501' || error.message.includes('not authorized')) {
+        if (error.code === '42501') {
           toast({
             title: "Error",
             description: "You are not authorized to send messages to this chat",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (error.message?.includes('not authorized') || error.message?.includes('policy')) {
+          toast({
+            title: "Error",
+            description: "You don't have permission to send messages in this chat",
             variant: "destructive"
           });
           return;
@@ -140,8 +145,6 @@ export const useMessages = (chatId: string | null) => {
       }
 
       console.log('Message sent successfully:', data);
-      
-      // Immediately refresh messages to show the new message
       await fetchMessages();
       
     } catch (error) {
@@ -168,7 +171,6 @@ export const useMessages = (chatId: string | null) => {
 
       console.log('Sending file message:', { messageType, fileName: file.name });
 
-      // Let RLS handle authorization - don't do client-side checks
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -185,7 +187,7 @@ export const useMessages = (chatId: string | null) => {
       if (error) {
         console.error('Error inserting file message:', error);
         
-        if (error.code === '42501' || error.message.includes('not authorized')) {
+        if (error.code === '42501') {
           toast({
             title: "Error",
             description: "You are not authorized to send files to this chat",
@@ -198,8 +200,6 @@ export const useMessages = (chatId: string | null) => {
       }
 
       console.log('File message sent successfully:', data);
-      
-      // Immediately refresh messages
       await fetchMessages();
       
     } catch (error) {
@@ -230,7 +230,7 @@ export const useMessages = (chatId: string | null) => {
         filter: `chat_id=eq.${chatId}`
       }, (payload) => {
         console.log('Real-time message received:', payload);
-        fetchMessages(); // Refresh messages when new ones arrive
+        fetchMessages();
       })
       .subscribe();
 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ export interface Discussion {
     tag: string;
   }[];
   user_liked?: boolean;
+  image_urls?: string[];
 }
 
 export interface DiscussionWithProfile extends Discussion {
@@ -83,11 +85,21 @@ export const useDiscussions = () => {
             userLiked = !!userLikeData;
           }
 
+          // Parse image URLs from body if they exist
+          let imageUrls: string[] = [];
+          if (discussion.body) {
+            const imageUrlMatches = discussion.body.match(/blob:[^\s)]+/g);
+            if (imageUrlMatches) {
+              imageUrls = imageUrlMatches;
+            }
+          }
+
           return {
             ...discussion,
             replies_count: repliesCount || 0,
             likes_count: likesCount || 0,
-            user_liked: userLiked
+            user_liked: userLiked,
+            image_urls: imageUrls
           };
         })
       );
@@ -115,12 +127,22 @@ export const useDiscussions = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      let finalBody = newDiscussion.body;
+
+      // Handle image uploads by converting to blob URLs for now
+      // In a production app, you'd upload to Supabase Storage
+      if (newDiscussion.images && newDiscussion.images.length > 0) {
+        const imageUrls = newDiscussion.images.map(image => URL.createObjectURL(image));
+        const imageSection = imageUrls.map(url => `![Image](${url})`).join('\n');
+        finalBody = `${newDiscussion.body}\n\n${imageSection}`;
+      }
+
       // Create discussion
       const { data: discussion, error: discussionError } = await supabase
         .from('discussions')
         .insert({
           title: newDiscussion.title,
-          body: newDiscussion.body,
+          body: finalBody,
           author_id: user.id
         })
         .select()
@@ -140,16 +162,6 @@ export const useDiscussions = () => {
           );
 
         if (tagsError) throw tagsError;
-      }
-
-      // Handle multiple images upload if present
-      if (newDiscussion.images && newDiscussion.images.length > 0) {
-        console.log(`Uploading ${newDiscussion.images.length} images for discussion ${discussion.id}`);
-        // This would require setting up Supabase Storage bucket for discussion images
-        // For now, we'll just log that images were provided
-        newDiscussion.images.forEach((image, index) => {
-          console.log(`Image ${index + 1}: ${image.name} (${image.size} bytes)`);
-        });
       }
 
       toast({
