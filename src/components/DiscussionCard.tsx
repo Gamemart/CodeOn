@@ -195,11 +195,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             </div>
           ) : (
             <div>
-              {/* Display Title */}
-              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">
-                {discussion.title}
-              </h3>
-              
               {/* Display Body */}
               <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
                 {discussion.body}
