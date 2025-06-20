@@ -466,6 +466,10 @@ export type Database = {
         Args: { user_uuid: string; action: string }
         Returns: boolean
       }
+      user_is_chat_participant: {
+        Args: { chat_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       user_role: "user" | "moderator" | "admin"
