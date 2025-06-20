@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit } from 'lucide-react';
@@ -17,6 +16,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSearch } from '@/hooks/useSearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
+import FloatingChatHead from '@/components/chat/FloatingChatHead';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -247,6 +247,9 @@ const Index = () => {
             </button>
           </div>
         </div>
+
+        {/* Floating Chat Head */}
+        <FloatingChatHead />
       </div>
     );
   }
@@ -429,6 +432,9 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Chat Head */}
+      <FloatingChatHead />
     </div>
   );
 };

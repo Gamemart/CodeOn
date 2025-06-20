@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_roles: {
         Row: {
           color: string | null
@@ -162,6 +218,53 @@ export type Database = {
             columns: ["reply_id"]
             isOneToOne: false
             referencedRelation: "replies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string | null
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          message_type: string
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_type?: string
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_type?: string
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
             referencedColumns: ["id"]
           },
         ]
@@ -344,6 +447,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_or_create_direct_chat: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       get_user_custom_role: {
         Args: { user_uuid: string }
         Returns: {
