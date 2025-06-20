@@ -35,32 +35,75 @@ export const useMessages = (chatId: string | null) => {
         .from('messages')
         .select(`
           *,
-          profiles!messages_sender_id_fkey(username, full_name, avatar_url)
+          profiles!inner(username, full_name, avatar_url)
         `)
         .eq('chat_id', chatId)
+        .eq('profiles.id', supabase.raw('messages.sender_id'))
         .order('created_at', { ascending: true });
 
       if (error) throw error;
       
-      // Type the data properly
+      // Type the data properly with better error handling
       const typedMessages: Message[] = (data || []).map(msg => ({
         ...msg,
-        message_type: msg.message_type as 'text' | 'image' | 'file' | 'video',
-        profiles: msg.profiles || {
-          username: null,
-          full_name: null,
-          avatar_url: null
-        }
+        message_type: (msg.message_type as 'text' | 'image' | 'file' | 'video') || 'text',
+        profiles: Array.isArray(msg.profiles) && msg.profiles.length > 0 
+          ? {
+              username: msg.profiles[0]?.username || null,
+              full_name: msg.profiles[0]?.full_name || null,
+              avatar_url: msg.profiles[0]?.avatar_url || null
+            }
+          : {
+              username: null,
+              full_name: null,
+              avatar_url: null
+            }
       }));
       
       setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load messages",
-        variant: "destructive"
-      });
+      
+      // Fallback: try a simpler query without profiles join
+      try {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('chat_id', chatId)
+          .order('created_at', { ascending: true });
+
+        if (fallbackError) throw fallbackError;
+
+        // Get profiles separately
+        const senderIds = [...new Set((fallbackData || []).map(msg => msg.sender_id))];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, username, full_name, avatar_url')
+          .in('id', senderIds);
+
+        const profilesMap = new Map(
+          (profilesData || []).map(profile => [profile.id, profile])
+        );
+
+        const typedMessages: Message[] = (fallbackData || []).map(msg => ({
+          ...msg,
+          message_type: (msg.message_type as 'text' | 'image' | 'file' | 'video') || 'text',
+          profiles: profilesMap.get(msg.sender_id) || {
+            username: null,
+            full_name: null,
+            avatar_url: null
+          }
+        }));
+
+        setMessages(typedMessages);
+      } catch (fallbackError) {
+        console.error('Fallback query also failed:', fallbackError);
+        toast({
+          title: "Error",
+          description: "Failed to load messages",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
