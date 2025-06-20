@@ -42,7 +42,7 @@ export const useChats = () => {
           *,
           chat_participants!inner(
             user_id,
-            profiles(username, full_name, avatar_url)
+            profiles!chat_participants_user_id_fkey(username, full_name, avatar_url)
           )
         `)
         .order('updated_at', { ascending: false });
@@ -62,7 +62,15 @@ export const useChats = () => {
 
           return {
             ...chat,
-            participants: chat.chat_participants,
+            type: chat.type as 'direct' | 'group',
+            participants: chat.chat_participants.map((cp: any) => ({
+              user_id: cp.user_id,
+              profiles: cp.profiles || {
+                username: null,
+                full_name: null,
+                avatar_url: null
+              }
+            })),
             last_message: lastMessage || undefined
           };
         })

@@ -35,7 +35,7 @@ export const useMessages = (chatId: string | null) => {
         .from('messages')
         .select(`
           *,
-          profiles(username, full_name, avatar_url)
+          profiles!messages_sender_id_fkey(username, full_name, avatar_url)
         `)
         .eq('chat_id', chatId)
         .order('created_at', { ascending: true });
