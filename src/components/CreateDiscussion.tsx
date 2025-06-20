@@ -23,7 +23,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -118,14 +117,13 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
     }
 
     onSubmit({
-      title: title.trim() || 'Untitled Discussion',
+      title: 'Untitled Discussion',
       body: body.trim(),
       tags,
       images: selectedImages.length > 0 ? selectedImages : undefined
     });
 
     // Reset form
-    setTitle('');
     setBody('');
     setTags([]);
     setTagInput('');
@@ -161,13 +159,6 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                 </div>
               ) : (
                 <>
-                  <Input
-                    placeholder="Add a title for your discussion..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="text-base sm:text-lg font-medium border-0 bg-transparent focus:ring-0 focus:outline-none p-0 placeholder:text-gray-400"
-                  />
-
                   <Textarea
                     placeholder="Share your thoughts..."
                     value={body}
