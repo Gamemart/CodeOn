@@ -29,6 +29,7 @@ export const useMessages = (chatId: string | null) => {
   const fetchMessages = async () => {
     if (!chatId || !user) {
       console.log('Cannot fetch messages: missing chatId or user', { chatId, user: !!user });
+      setMessages([]);
       return;
     }
 
@@ -36,20 +37,7 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Fetching messages for chat:', chatId);
       
-      // First verify user is participant in this chat
-      const { data: participantCheck } = await supabase
-        .from('chat_participants')
-        .select('user_id')
-        .eq('chat_id', chatId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!participantCheck) {
-        console.error('User is not a participant in this chat');
-        throw new Error('You are not authorized to view this chat');
-      }
-
-      // Get messages for this chat
+      // Get messages for this chat - RLS will handle authorization
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
@@ -58,10 +46,21 @@ export const useMessages = (chatId: string | null) => {
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
+        // Don't throw error immediately, might be empty chat
+        if (messagesError.code === 'PGRST301') {
+          // No rows found - empty chat
+          setMessages([]);
+          return;
+        }
         throw messagesError;
       }
 
       console.log('Messages fetched:', messagesData);
+
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        return;
+      }
 
       // Get unique sender IDs
       const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
@@ -78,7 +77,7 @@ export const useMessages = (chatId: string | null) => {
       );
 
       // Combine messages with profiles
-      const typedMessages: Message[] = (messagesData || []).map(msg => ({
+      const typedMessages: Message[] = messagesData.map(msg => ({
         ...msg,
         message_type: (msg.message_type as 'text' | 'image' | 'file' | 'video') || 'text',
         profiles: profilesMap.get(msg.sender_id) || {
@@ -92,6 +91,7 @@ export const useMessages = (chatId: string | null) => {
       console.log('Messages state updated with', typedMessages.length, 'messages');
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]);
       toast({
         title: "Error",
         description: "Failed to load messages",
@@ -111,24 +111,7 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Sending message to chat:', chatId, 'content:', content.trim());
       
-      // First verify user is participant in this chat
-      const { data: participantCheck } = await supabase
-        .from('chat_participants')
-        .select('user_id')
-        .eq('chat_id', chatId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!participantCheck) {
-        console.error('User is not a participant in this chat');
-        toast({
-          title: "Error",
-          description: "You are not authorized to send messages to this chat",
-          variant: "destructive"
-        });
-        return;
-      }
-      
+      // Let RLS handle authorization - don't do client-side checks
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -142,6 +125,17 @@ export const useMessages = (chatId: string | null) => {
 
       if (error) {
         console.error('Error inserting message:', error);
+        
+        // Handle specific error cases
+        if (error.code === '42501' || error.message.includes('not authorized')) {
+          toast({
+            title: "Error",
+            description: "You are not authorized to send messages to this chat",
+            variant: "destructive"
+          });
+          return;
+        }
+        
         throw error;
       }
 
@@ -164,24 +158,6 @@ export const useMessages = (chatId: string | null) => {
     if (!chatId || !user) return;
 
     try {
-      // First verify user is participant in this chat
-      const { data: participantCheck } = await supabase
-        .from('chat_participants')
-        .select('user_id')
-        .eq('chat_id', chatId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!participantCheck) {
-        console.error('User is not a participant in this chat');
-        toast({
-          title: "Error",
-          description: "You are not authorized to send files to this chat",
-          variant: "destructive"
-        });
-        return;
-      }
-
       let messageType: 'image' | 'file' | 'video' = 'file';
       
       if (file.type.startsWith('image/')) {
@@ -192,6 +168,7 @@ export const useMessages = (chatId: string | null) => {
 
       console.log('Sending file message:', { messageType, fileName: file.name });
 
+      // Let RLS handle authorization - don't do client-side checks
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -205,7 +182,20 @@ export const useMessages = (chatId: string | null) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting file message:', error);
+        
+        if (error.code === '42501' || error.message.includes('not authorized')) {
+          toast({
+            title: "Error",
+            description: "You are not authorized to send files to this chat",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        throw error;
+      }
 
       console.log('File message sent successfully:', data);
       
