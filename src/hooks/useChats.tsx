@@ -62,6 +62,7 @@ export const useChats = () => {
 
           return {
             ...chat,
+            participants: chat.chat_participants,
             last_message: lastMessage || undefined
           };
         })

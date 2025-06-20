@@ -41,7 +41,19 @@ export const useMessages = (chatId: string | null) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Type the data properly
+      const typedMessages: Message[] = (data || []).map(msg => ({
+        ...msg,
+        message_type: msg.message_type as 'text' | 'image' | 'file' | 'video',
+        profiles: msg.profiles || {
+          username: null,
+          full_name: null,
+          avatar_url: null
+        }
+      }));
+      
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
