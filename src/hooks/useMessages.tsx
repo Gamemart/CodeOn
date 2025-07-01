@@ -27,8 +27,8 @@ export const useMessages = (chatId: string | null) => {
   const [loading, setLoading] = useState(false);
 
   const fetchMessages = async () => {
-    if (!chatId || !user) {
-      console.log('Cannot fetch messages: missing chatId or user', { chatId, user: !!user });
+    if (!chatId || !user?.id) {
+      console.log('Cannot fetch messages: missing chatId or user', { chatId, userId: user?.id });
       setMessages([]);
       return;
     }
@@ -37,7 +37,7 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Fetching messages for chat:', chatId);
       
-      // Get messages for this chat - RLS policies will handle access control
+      // Get messages for this chat - simplified query
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
@@ -46,7 +46,7 @@ export const useMessages = (chatId: string | null) => {
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
-        if (messagesError.code === 'PGRST301') {
+        if (messagesError.code === 'PGRST301' || messagesError.code === '42P17') {
           setMessages([]);
           return;
         }
@@ -101,8 +101,8 @@ export const useMessages = (chatId: string | null) => {
   };
 
   const sendMessage = async (content: string) => {
-    if (!chatId || !user || !content.trim()) {
-      console.log('Cannot send message: missing data', { chatId, user: !!user, content: content.trim() });
+    if (!chatId || !user?.id || !content.trim()) {
+      console.log('Cannot send message: missing data', { chatId, userId: user?.id, content: content.trim() });
       return;
     }
 
@@ -123,19 +123,10 @@ export const useMessages = (chatId: string | null) => {
       if (error) {
         console.error('Error inserting message:', error);
         
-        if (error.code === '42501') {
+        if (error.code === '42501' || error.code === '42P17') {
           toast({
             title: "Error",
             description: "You are not authorized to send messages to this chat",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        if (error.message?.includes('not authorized') || error.message?.includes('policy')) {
-          toast({
-            title: "Error",
-            description: "You don't have permission to send messages in this chat",
             variant: "destructive"
           });
           return;
@@ -158,7 +149,7 @@ export const useMessages = (chatId: string | null) => {
   };
 
   const sendFileMessage = async (file: File, fileUrl: string) => {
-    if (!chatId || !user) return;
+    if (!chatId || !user?.id) return;
 
     try {
       let messageType: 'image' | 'file' | 'video' = 'file';
@@ -187,7 +178,7 @@ export const useMessages = (chatId: string | null) => {
       if (error) {
         console.error('Error inserting file message:', error);
         
-        if (error.code === '42501') {
+        if (error.code === '42501' || error.code === '42P17') {
           toast({
             title: "Error",
             description: "You are not authorized to send files to this chat",
@@ -213,7 +204,7 @@ export const useMessages = (chatId: string | null) => {
   };
 
   useEffect(() => {
-    if (!chatId) {
+    if (!chatId || !user?.id) {
       setMessages([]);
       return;
     }
@@ -240,7 +231,7 @@ export const useMessages = (chatId: string | null) => {
       console.log('Unsubscribing from real-time messages for chat:', chatId);
       supabase.removeChannel(messagesChannel);
     };
-  }, [chatId, user]);
+  }, [chatId, user?.id]);
 
   return {
     messages,
