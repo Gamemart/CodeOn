@@ -43,7 +43,7 @@ export const useBounties = () => {
             id,
             tag
           ),
-          profiles (
+          profiles!author_id (
             full_name,
             username,
             avatar_url
