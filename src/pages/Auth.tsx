@@ -33,47 +33,108 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
     if (!email || !password || !fullName) {
       toast({
-        title: "Please fill in all fields",
-        description: "All fields are required for signup.",
+        title: "Please fill in all required fields",
+        description: "Email, password, and full name are required for signup.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
         variant: "destructive"
       });
       return;
     }
 
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
+      console.log('Starting signup process for:', email);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: fullName,
-            username: username || fullName.toLowerCase().replace(/\s+/g, '')
+            full_name: fullName.trim(),
+            username: username.trim() || fullName.toLowerCase().replace(/\s+/g, '').substring(0, 20)
           }
         }
       });
 
-      if (error) throw error;
+      console.log('Signup response:', { data, error });
 
-      toast({
-        title: "Account created successfully!",
-        description: "You can now sign in with your credentials."
-      });
+      if (error) {
+        console.error('Signup error:', error);
+        
+        // Handle specific error cases
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Account already exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive"
+          });
+          setActiveTab('signin');
+          return;
+        }
+        
+        if (error.message.includes('Database error')) {
+          toast({
+            title: "Server error",
+            description: "There was a problem creating your account. Please try again in a moment.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        throw error;
+      }
 
-      // Clear form and switch to sign in tab
+      if (data.user) {
+        console.log('User created successfully:', data.user.id);
+        
+        // Check if user needs email confirmation
+        if (!data.session) {
+          toast({
+            title: "Check your email",
+            description: "We sent you a confirmation link. Please check your email to complete signup.",
+          });
+        } else {
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome! You're now signed in."
+          });
+          navigate('/');
+          return;
+        }
+      }
+
+      // Clear form fields after successful signup
       setEmail('');
       setPassword('');
       setFullName('');
       setUsername('');
-      setActiveTab('signin');
+      
     } catch (error: any) {
       console.error('Signup error:', error);
+      
+      let errorMessage = "An unexpected error occurred during signup.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Signup failed",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -83,6 +144,7 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!email || !password) {
       toast({
         title: "Please fill in all fields",
@@ -93,24 +155,47 @@ const Auth = () => {
     }
 
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      console.log('Starting signin process for:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password
       });
 
-      if (error) throw error;
+      console.log('Signin response:', { data, error });
 
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in."
-      });
-      navigate('/');
+      if (error) {
+        console.error('Signin error:', error);
+        
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Invalid credentials",
+            description: "The email or password you entered is incorrect.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        throw error;
+      }
+
+      if (data.user) {
+        console.log('User signed in successfully:', data.user.id);
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in."
+        });
+        navigate('/');
+      }
+      
     } catch (error: any) {
       console.error('Signin error:', error);
+      
       toast({
         title: "Sign in failed",
-        description: error.message || "Invalid email or password",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
@@ -142,12 +227,12 @@ const Auth = () => {
               UTech Platform
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-              {activeTab === 'signin' ? 'Welcome back' : 'Sign up'}
+              {activeTab === 'signin' ? 'Welcome back' : 'Create account'}
             </h1>
             <p className="text-gray-600 text-base sm:text-lg">
               {activeTab === 'signin' 
-                ? 'Welcome to the Smart Site System for Oil Depots. Register as a member to experience.' 
-                : 'Create your account to get started with our platform.'
+                ? 'Welcome to the Smart Site System for Oil Depots. Sign in to continue.' 
+                : 'Join the Smart Site System for Oil Depots today.'
               }
             </p>
           </div>
@@ -234,7 +319,7 @@ const Auth = () => {
               <form onSubmit={handleSignUp} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-gray-700 font-medium">
-                    Full Name
+                    Full Name *
                   </Label>
                   <Input
                     id="fullName"
@@ -263,7 +348,7 @@ const Auth = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="text-gray-700 font-medium">
-                    E-mail
+                    E-mail *
                   </Label>
                   <Input
                     id="signup-email"
@@ -279,7 +364,7 @@ const Auth = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-gray-700 font-medium">
-                    Password
+                    Password *
                   </Label>
                   <div className="relative">
                     <Input
@@ -301,6 +386,7 @@ const Auth = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                  <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
                 </div>
                 
                 <Button 
@@ -313,11 +399,12 @@ const Auth = () => {
 
                 <div className="text-center">
                   <p className="text-gray-600 text-sm">
-                    Already a member?{' '}
+                    Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => setActiveTab('signin')}
                       className="text-gray-900 hover:underline font-medium"
+                      disabled={loading}
                     >
                       Sign in
                     </button>
