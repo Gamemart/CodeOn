@@ -37,7 +37,7 @@ export const useMessages = (chatId: string | null) => {
     try {
       console.log('Fetching messages for chat:', chatId);
       
-      // Get messages for this chat
+      // Get messages for this chat - RLS policies will handle access control
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('*')
