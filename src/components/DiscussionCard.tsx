@@ -232,7 +232,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                       <img 
                         src={url} 
                         alt={`Discussion image ${index + 1}`} 
-                        className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                        className="w-full max-h-96 object-contain rounded-lg bg-gray-50"
                         onError={(e) => {
                           console.error('Failed to load image:', url);
                           e.currentTarget.style.display = 'none';
