@@ -46,12 +46,12 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   
   const isAuthor = user?.id === discussion.authorId;
 
-  // Extract image URLs from body content
+  // Extract image URLs from body content - improved regex to handle Supabase URLs
   const extractImageUrls = (content: string): string[] => {
-    const imageRegex = /!\[.*?\]\((blob:[^\s)]+)\)/g;
+    const markdownImageRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
     const matches = [];
     let match;
-    while ((match = imageRegex.exec(content)) !== null) {
+    while ((match = markdownImageRegex.exec(content)) !== null) {
       matches.push(match[1]);
     }
     return matches;
@@ -59,7 +59,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
   // Remove image markdown from body for display
   const cleanBodyText = (content: string): string => {
-    return content.replace(/!\[.*?\]\(blob:[^\s)]+\)/g, '').trim();
+    return content.replace(/!\[.*?\]\(https?:\/\/[^\s)]+\)/g, '').trim();
   };
 
   const imageUrls = discussion.image_urls || extractImageUrls(discussion.body);
@@ -233,6 +233,10 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                         src={url} 
                         alt={`Discussion image ${index + 1}`} 
                         className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                        onError={(e) => {
+                          console.error('Failed to load image:', url);
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   ))}
