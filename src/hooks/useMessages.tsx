@@ -46,7 +46,9 @@ export const useMessages = (chatId: string | null) => {
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
+        // Handle specific RLS errors gracefully
         if (messagesError.code === 'PGRST301' || messagesError.code === '42P17') {
+          console.log('RLS permission issue, setting empty messages');
           setMessages([]);
           return;
         }

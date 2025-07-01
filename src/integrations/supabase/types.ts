@@ -462,6 +462,10 @@ export type Database = {
         Args: Record<PropertyKey, never> | { user_uuid: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      is_chat_member: {
+        Args: { chat_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
       is_user_moderated: {
         Args: { user_uuid: string; action: string }
         Returns: boolean
