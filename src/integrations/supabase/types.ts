@@ -9,6 +9,71 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bounties: {
+        Row: {
+          author_id: string
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          price: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          currency?: string
+          description: string
+          id?: string
+          price: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          price?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bounty_tags: {
+        Row: {
+          bounty_id: string
+          created_at: string
+          id: string
+          tag: string
+        }
+        Insert: {
+          bounty_id: string
+          created_at?: string
+          id?: string
+          tag: string
+        }
+        Update: {
+          bounty_id?: string
+          created_at?: string
+          id?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bounty_tags_bounty_id_fkey"
+            columns: ["bounty_id"]
+            isOneToOne: false
+            referencedRelation: "bounties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_participants: {
         Row: {
           chat_id: string

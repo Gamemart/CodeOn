@@ -16,6 +16,7 @@ import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
 import { useSearch } from '@/hooks/useSearch';
+import { useBounties } from '@/hooks/useBounties';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
 import FloatingChatHead from '@/components/chat/FloatingChatHead';
@@ -24,6 +25,7 @@ import ChatWindow from '@/components/chat/ChatWindow';
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
+  const { bounties, loading: bountiesLoading, createBounty } = useBounties();
   const { userRole } = useUserRoles();
   const { profile } = useProfile();
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,49 +35,6 @@ const Index = () => {
   const navigate = useNavigate();
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-
-  // Mock bounty data (in a real app, this would come from a hook similar to useDiscussions)
-  const [bounties, setBounties] = useState([
-    {
-      id: '1',
-      title: 'Loveable App and Supabase database help',
-      description: 'My loveable app starts with a parent login page, the parent signs into loveable account and has dashboard view of her own that allows her to add students to the account, each student will receive a unique username and 4 Digit pin. Student will have a unique link to open an instance of the...',
-      price: 30,
-      currency: 'CAD',
-      author: 'Christopher Pike Pike',
-      authorId: 'user1',
-      authorInitials: 'CP',
-      createdAt: '2 hours ago',
-      status: 'Open',
-      tags: ['supabase', 'loveable', 'database']
-    },
-    {
-      id: '2', 
-      title: 'Help with CNAME & DNS',
-      description: 'I was going to set up my Lovable site with GHL and made a mistake. I deleted the A and CNAME records for my domain with names.com, and now I can\'t fix it. I\'m getting a 404 error, and I\'m not sure what to do.',
-      price: 25,
-      currency: 'USD',
-      author: 'Adam Hale',
-      authorId: 'user2',
-      authorInitials: 'AH',
-      createdAt: '4 hours ago',
-      status: 'Open',
-      tags: ['dns', 'cname', 'domain']
-    },
-    {
-      id: '3',
-      title: 'I delete my app by mistake',
-      description: 'I want to recover my old app trace cold my last modification on it was about how to avoid robbery when people weigh mineral and he even propose me different kind weigh machine to use I need please to get it back',
-      price: 30,
-      currency: 'USD',
-      author: 'theo Tchiba',
-      authorId: 'user3',
-      authorInitials: 't',
-      createdAt: '6 hours ago',
-      status: 'Open',
-      tags: ['recovery', 'app', 'backup']
-    }
-  ]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -108,23 +67,6 @@ const Index = () => {
 
   const handleEditProfile = () => {
     navigate(`/profile/${user?.id}`);
-  };
-
-  const handleCreateBounty = (bountyData: any) => {
-    const newBounty = {
-      id: Date.now().toString(),
-      ...bountyData,
-      author: profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User',
-      authorId: user?.id,
-      authorInitials: (profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User').split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-      createdAt: 'just now',
-      status: 'Open'
-    };
-    setBounties([newBounty, ...bounties]);
-    toast({
-      title: "Bounty created",
-      description: "Your bounty has been posted successfully."
-    });
   };
 
   if (authLoading) {
@@ -251,7 +193,7 @@ const Index = () => {
               {activeTab === 'home' ? (
                 <CreateDiscussion onSubmit={createDiscussion} />
               ) : (
-                <CreateBounty onSubmit={handleCreateBounty} />
+                <CreateBounty onSubmit={createBounty} />
               )}
             </div>
           )}
@@ -309,14 +251,41 @@ const Index = () => {
                 )
               ) : (
                 // Bounty Feed
-                bounties.length > 0 ? (
-                  bounties.map((bounty) => (
-                    <BountyCard
-                      key={bounty.id}
-                      bounty={bounty}
-                      onAuthorClick={() => navigate(`/profile/${bounty.authorId}`)}
-                    />
-                  ))
+                bountiesLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Loading bounties...</p>
+                  </div>
+                ) : bounties.length > 0 ? (
+                  bounties.map((bounty) => {
+                    const authorName = bounty.profiles?.full_name || 
+                                     bounty.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = bounty.bounty_tags.map(tag => tag.tag);
+                    const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+
+                    return (
+                      <BountyCard
+                        key={bounty.id}
+                        bounty={{
+                          id: bounty.id,
+                          title: bounty.title,
+                          description: bounty.description,
+                          price: bounty.price,
+                          currency: bounty.currency,
+                          author: authorName,
+                          authorId: bounty.author_id,
+                          authorInitials,
+                          authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                          createdAt: timeAgo,
+                          status: bounty.status,
+                          tags
+                        }}
+                        onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                      />
+                    );
+                  })
                 ) : (
                   <div className="text-center py-12">
                     <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -536,7 +505,7 @@ const Index = () => {
                 {activeTab === 'home' ? (
                   <CreateDiscussion onSubmit={createDiscussion} />
                 ) : (
-                  <CreateBounty onSubmit={handleCreateBounty} />
+                  <CreateBounty onSubmit={createBounty} />
                 )}
               </div>
             )}
@@ -594,14 +563,41 @@ const Index = () => {
                   )
                 ) : (
                   // Bounty Feed
-                  bounties.length > 0 ? (
-                    bounties.map((bounty) => (
-                      <BountyCard
-                        key={bounty.id}
-                        bounty={bounty}
-                        onAuthorClick={() => navigate(`/profile/${bounty.authorId}`)}
-                      />
-                    ))
+                  bountiesLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-500">Loading bounties...</p>
+                    </div>
+                  ) : bounties.length > 0 ? (
+                    bounties.map((bounty) => {
+                      const authorName = bounty.profiles?.full_name || 
+                                       bounty.profiles?.username || 
+                                       'Anonymous User';
+                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const tags = bounty.bounty_tags.map(tag => tag.tag);
+                      const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+
+                      return (
+                        <BountyCard
+                          key={bounty.id}
+                          bounty={{
+                            id: bounty.id,
+                            title: bounty.title,
+                            description: bounty.description,
+                            price: bounty.price,
+                            currency: bounty.currency,
+                            author: authorName,
+                            authorId: bounty.author_id,
+                            authorInitials,
+                            authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                            createdAt: timeAgo,
+                            status: bounty.status,
+                            tags
+                          }}
+                          onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                        />
+                      );
+                    })
                   ) : (
                     <div className="text-center py-12">
                       <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
