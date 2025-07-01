@@ -63,22 +63,23 @@ export const useUserRoles = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setUserRole('user');
+        setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
+      // Use the database function to get user role
+      const { data, error } = await supabase.rpc('get_user_role', { 
+        user_uuid: user.id 
+      });
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Error fetching user role:', error);
+        setUserRole('user');
+      } else {
+        setUserRole(data || 'user');
       }
-
-      setUserRole(data?.role || 'user');
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Error in fetchUserRole:', error);
       setUserRole('user');
     } finally {
       setLoading(false);

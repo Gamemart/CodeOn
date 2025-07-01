@@ -57,13 +57,20 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "Check your email!",
-        description: "We've sent you a confirmation link to complete your signup."
+        title: "Account created successfully!",
+        description: "You can now sign in with your credentials."
       });
+
+      // Clear form and switch to sign in tab
+      setEmail('');
+      setPassword('');
+      setFullName('');
+      setUsername('');
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: "Signup failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
@@ -97,9 +104,10 @@ const Auth = () => {
       });
       navigate('/');
     } catch (error: any) {
+      console.error('Signin error:', error);
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: error.message || "Invalid email or password",
         variant: "destructive"
       });
     } finally {
@@ -151,6 +159,7 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -167,6 +176,7 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -194,6 +204,7 @@ const Auth = () => {
                         onChange={(e) => setFullName(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -208,6 +219,7 @@ const Auth = () => {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -224,6 +236,7 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -240,6 +253,8 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={loading}
+                        minLength={6}
                       />
                     </div>
                   </div>
