@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit } from 'lucide-react';
+import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import DiscussionCard from '@/components/DiscussionCard';
 import CreateDiscussion from '@/components/CreateDiscussion';
 import SearchResults from '@/components/SearchResults';
+import BountyCard from '@/components/BountyCard';
+import CreateBounty from '@/components/CreateBounty';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -30,6 +32,50 @@ const Index = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Mock bounty data (in a real app, this would come from a hook similar to useDiscussions)
+  const [bounties, setBounties] = useState([
+    {
+      id: '1',
+      title: 'Loveable App and Supabase database help',
+      description: 'My loveable app starts with a parent login page, the parent signs into loveable account and has dashboard view of her own that allows her to add students to the account, each student will receive a unique username and 4 Digit pin. Student will have a unique link to open an instance of the...',
+      price: 30,
+      currency: 'CAD',
+      author: 'Christopher Pike Pike',
+      authorId: 'user1',
+      authorInitials: 'CP',
+      createdAt: '2 hours ago',
+      status: 'Open',
+      tags: ['supabase', 'loveable', 'database']
+    },
+    {
+      id: '2', 
+      title: 'Help with CNAME & DNS',
+      description: 'I was going to set up my Lovable site with GHL and made a mistake. I deleted the A and CNAME records for my domain with names.com, and now I can\'t fix it. I\'m getting a 404 error, and I\'m not sure what to do.',
+      price: 25,
+      currency: 'USD',
+      author: 'Adam Hale',
+      authorId: 'user2',
+      authorInitials: 'AH',
+      createdAt: '4 hours ago',
+      status: 'Open',
+      tags: ['dns', 'cname', 'domain']
+    },
+    {
+      id: '3',
+      title: 'I delete my app by mistake',
+      description: 'I want to recover my old app trace cold my last modification on it was about how to avoid robbery when people weigh mineral and he even propose me different kind weigh machine to use I need please to get it back',
+      price: 30,
+      currency: 'USD',
+      author: 'theo Tchiba',
+      authorId: 'user3',
+      authorInitials: 't',
+      createdAt: '6 hours ago',
+      status: 'Open',
+      tags: ['recovery', 'app', 'backup']
+    }
+  ]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -62,6 +108,23 @@ const Index = () => {
 
   const handleEditProfile = () => {
     navigate(`/profile/${user?.id}`);
+  };
+
+  const handleCreateBounty = (bountyData: any) => {
+    const newBounty = {
+      id: Date.now().toString(),
+      ...bountyData,
+      author: profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User',
+      authorId: user?.id,
+      authorInitials: (profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User').split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+      createdAt: 'just now',
+      status: 'Open'
+    };
+    setBounties([newBounty, ...bounties]);
+    toast({
+      title: "Bounty created",
+      description: "Your bounty has been posted successfully."
+    });
   };
 
   if (authLoading) {
@@ -146,11 +209,25 @@ const Index = () => {
 
           {/* Navigation Tabs */}
           <div className="flex justify-center space-x-8">
-            <button className="pb-2 border-b-2 border-blue-500 text-blue-600 font-medium">
+            <button 
+              onClick={() => setActiveTab('home')}
+              className={`pb-2 border-b-2 font-medium ${
+                activeTab === 'home' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
               Home
             </button>
-            <button className="pb-2 text-gray-500 hover:text-gray-700">
-              Trending
+            <button 
+              onClick={() => setActiveTab('bounty')}
+              className={`pb-2 border-b-2 font-medium ${
+                activeTab === 'bounty' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Bounty
             </button>
           </div>
         </div>
@@ -168,61 +245,85 @@ const Index = () => {
             </div>
           )}
 
-          {/* Create Discussion */}
+          {/* Create Section */}
           {!showSearchResults && (
             <div className="mb-4">
-              <CreateDiscussion onSubmit={createDiscussion} />
+              {activeTab === 'home' ? (
+                <CreateDiscussion onSubmit={createDiscussion} />
+              ) : (
+                <CreateBounty onSubmit={handleCreateBounty} />
+              )}
             </div>
           )}
 
-          {/* Discussion Feed */}
+          {/* Feed */}
           {!showSearchResults && (
             <div className="space-y-4">
-              {discussionsLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-500">Loading discussions...</p>
-                </div>
-              ) : discussions.length > 0 ? (
-                discussions.map((discussion) => {
-                  const authorName = discussion.profiles?.full_name || 
-                                   discussion.profiles?.username || 
-                                   'Anonymous User';
-                  const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-                  const tags = discussion.discussion_tags.map(dt => dt.tag);
-                  const timeAgo = new Date(discussion.created_at).toLocaleDateString();
+              {activeTab === 'home' ? (
+                // Discussion Feed
+                discussionsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Loading discussions...</p>
+                  </div>
+                ) : discussions.length > 0 ? (
+                  discussions.map((discussion) => {
+                    const authorName = discussion.profiles?.full_name || 
+                                     discussion.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = discussion.discussion_tags.map(dt => dt.tag);
+                    const timeAgo = new Date(discussion.created_at).toLocaleDateString();
 
-                  return (
-                    <DiscussionCard
-                      key={discussion.id}
-                      discussion={{
-                        id: discussion.id,
-                        title: discussion.title,
-                        body: discussion.body,
-                        author: authorName,
-                        authorId: discussion.author_id,
-                        authorInitials,
-                        createdAt: timeAgo,
-                        tags,
-                        repliesCount: discussion.replies_count,
-                        likesCount: discussion.likes_count,
-                        isLiked: discussion.user_liked || false,
-                        statusMessage: discussion.profiles?.status_message || undefined,
-                        authorAvatarUrl: discussion.profiles?.avatar_url || undefined
-                      }}
-                      onLike={toggleLike}
-                      onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
-                      onEdit={editDiscussion}
-                      onDelete={deleteDiscussion}
-                    />
-                  );
-                })
+                    return (
+                      <DiscussionCard
+                        key={discussion.id}
+                        discussion={{
+                          id: discussion.id,
+                          title: discussion.title,
+                          body: discussion.body,
+                          author: authorName,
+                          authorId: discussion.author_id,
+                          authorInitials,
+                          createdAt: timeAgo,
+                          tags,
+                          repliesCount: discussion.replies_count,
+                          likesCount: discussion.likes_count,
+                          isLiked: discussion.user_liked || false,
+                          statusMessage: discussion.profiles?.status_message || undefined,
+                          authorAvatarUrl: discussion.profiles?.avatar_url || undefined
+                        }}
+                        onLike={toggleLike}
+                        onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                        onEdit={editDiscussion}
+                        onDelete={deleteDiscussion}
+                      />
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
+                    <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                  </div>
+                )
               ) : (
-                <div className="text-center py-12">
-                  <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                  <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
-                </div>
+                // Bounty Feed
+                bounties.length > 0 ? (
+                  bounties.map((bounty) => (
+                    <BountyCard
+                      key={bounty.id}
+                      bounty={bounty}
+                      onAuthorClick={() => navigate(`/profile/${bounty.authorId}`)}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
+                    <p className="text-gray-500">Create the first bounty and start earning!</p>
+                  </div>
+                )
               )}
             </div>
           )}
@@ -231,9 +332,12 @@ const Index = () => {
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/50 p-4 z-50">
           <div className="flex justify-around items-center">
-            <button className="flex flex-col items-center space-y-1">
-              <Home className="h-5 w-5 text-blue-600" />
-              <span className="text-xs text-blue-600">Home</span>
+            <button 
+              onClick={() => setActiveTab('home')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <Home className={`h-5 w-5 ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`} />
+              <span className={`text-xs ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`}>Home</span>
             </button>
             <button 
               onClick={() => setShowMobileChat(true)}
@@ -250,9 +354,12 @@ const Index = () => {
               </div>
               <span className="text-xs text-gray-600">Post</span>
             </button>
-            <button className="flex flex-col items-center space-y-1">
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="text-xs text-gray-600">Inbox</span>
+            <button 
+              onClick={() => setActiveTab('bounty')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <DollarSign className={`h-5 w-5 ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`} />
+              <span className={`text-xs ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`}>Bounty</span>
             </button>
           </div>
         </div>
@@ -269,7 +376,7 @@ const Index = () => {
     );
   }
 
-  // Desktop Layout (existing code)
+  // Desktop Layout
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
       <div className="flex h-screen">
@@ -304,12 +411,35 @@ const Index = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2">
             <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start text-blue-600 bg-blue-50">
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${
+                  activeTab === 'home' ? 'text-blue-600 bg-blue-50' : ''
+                }`}
+                onClick={() => setActiveTab('home')}
+              >
                 <Home className="h-4 w-4 mr-3" />
                 Home
-                <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                  {discussions.length}
-                </span>
+                {activeTab === 'home' && (
+                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                    {discussions.length}
+                  </span>
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${
+                  activeTab === 'bounty' ? 'text-blue-600 bg-blue-50' : ''
+                }`}
+                onClick={() => setActiveTab('bounty')}
+              >
+                <DollarSign className="h-4 w-4 mr-3" />
+                Bounty
+                {activeTab === 'bounty' && (
+                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                    {bounties.length}
+                  </span>
+                )}
               </Button>
               <Button variant="ghost" className="w-full justify-start">
                 <Bell className="h-4 w-4 mr-3" />
@@ -367,11 +497,25 @@ const Index = () => {
           <div className="max-w-4xl mx-auto">
             {/* Header Tabs */}
             <div className="flex gap-8 mb-6 border-b border-gray-200/50">
-              <button className="pb-3 border-b-2 border-blue-500 text-blue-600 font-medium">
+              <button 
+                onClick={() => setActiveTab('home')}
+                className={`pb-3 border-b-2 font-medium ${
+                  activeTab === 'home' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
                 Home
               </button>
-              <button className="pb-3 text-gray-500 hover:text-gray-700">
-                Trending
+              <button 
+                onClick={() => setActiveTab('bounty')}
+                className={`pb-3 border-b-2 font-medium ${
+                  activeTab === 'bounty' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Bounty
               </button>
             </div>
 
@@ -386,61 +530,85 @@ const Index = () => {
               </div>
             )}
 
-            {/* Create Discussion */}
+            {/* Create Section */}
             {!showSearchResults && (
               <div className="mb-6">
-                <CreateDiscussion onSubmit={createDiscussion} />
+                {activeTab === 'home' ? (
+                  <CreateDiscussion onSubmit={createDiscussion} />
+                ) : (
+                  <CreateBounty onSubmit={handleCreateBounty} />
+                )}
               </div>
             )}
 
-            {/* Discussion Feed */}
+            {/* Feed */}
             {!showSearchResults && (
               <div className="space-y-4">
-                {discussionsLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading discussions...</p>
-                  </div>
-                ) : discussions.length > 0 ? (
-                  discussions.map((discussion) => {
-                    const authorName = discussion.profiles?.full_name || 
-                                     discussion.profiles?.username || 
-                                     'Anonymous User';
-                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-                    const tags = discussion.discussion_tags.map(dt => dt.tag);
-                    const timeAgo = new Date(discussion.created_at).toLocaleDateString();
+                {activeTab === 'home' ? (
+                  // Discussion Feed
+                  discussionsLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-500">Loading discussions...</p>
+                    </div>
+                  ) : discussions.length > 0 ? (
+                    discussions.map((discussion) => {
+                      const authorName = discussion.profiles?.full_name || 
+                                       discussion.profiles?.username || 
+                                       'Anonymous User';
+                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const tags = discussion.discussion_tags.map(dt => dt.tag);
+                      const timeAgo = new Date(discussion.created_at).toLocaleDateString();
 
-                    return (
-                      <DiscussionCard
-                        key={discussion.id}
-                        discussion={{
-                          id: discussion.id,
-                          title: discussion.title,
-                          body: discussion.body,
-                          author: authorName,
-                          authorId: discussion.author_id,
-                          authorInitials,
-                          createdAt: timeAgo,
-                          tags,
-                          repliesCount: discussion.replies_count,
-                          likesCount: discussion.likes_count,
-                          isLiked: discussion.user_liked || false,
-                          statusMessage: discussion.profiles?.status_message || undefined,
-                          authorAvatarUrl: discussion.profiles?.avatar_url || undefined
-                        }}
-                        onLike={toggleLike}
-                        onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
-                        onEdit={editDiscussion}
-                        onDelete={deleteDiscussion}
-                      />
-                    );
-                  })
+                      return (
+                        <DiscussionCard
+                          key={discussion.id}
+                          discussion={{
+                            id: discussion.id,
+                            title: discussion.title,
+                            body: discussion.body,
+                            author: authorName,
+                            authorId: discussion.author_id,
+                            authorInitials,
+                            createdAt: timeAgo,
+                            tags,
+                            repliesCount: discussion.replies_count,
+                            likesCount: discussion.likes_count,
+                            isLiked: discussion.user_liked || false,
+                            statusMessage: discussion.profiles?.status_message || undefined,
+                            authorAvatarUrl: discussion.profiles?.avatar_url || undefined
+                          }}
+                          onLike={toggleLike}
+                          onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                          onEdit={editDiscussion}
+                          onDelete={deleteDiscussion}
+                        />
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-12">
+                      <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
+                      <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                    </div>
+                  )
                 ) : (
-                  <div className="text-center py-12">
-                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                    <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
-                  </div>
+                  // Bounty Feed
+                  bounties.length > 0 ? (
+                    bounties.map((bounty) => (
+                      <BountyCard
+                        key={bounty.id}
+                        bounty={bounty}
+                        onAuthorClick={() => navigate(`/profile/${bounty.authorId}`)}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
+                      <p className="text-gray-500">Create the first bounty and start earning!</p>
+                    </div>
+                  )
                 )}
               </div>
             )}
