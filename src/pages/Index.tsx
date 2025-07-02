@@ -187,13 +187,28 @@ const Index = () => {
             </div>
           )}
 
-          {/* Create Section */}
+          {/* Create Section - Improved Mobile Styling for Bounty */}
           {!showSearchResults && (
-            <div className="mb-4">
+            <div className="mb-6">
               {activeTab === 'home' ? (
                 <CreateDiscussion onSubmit={createDiscussion} />
               ) : (
-                <CreateBounty onSubmit={createBounty} />
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-600 text-sm leading-6 mb-4">
+                        What do you need help with?
+                      </p>
+                      <CreateBounty onSubmit={createBounty} />
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
