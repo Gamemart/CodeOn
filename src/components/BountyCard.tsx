@@ -53,16 +53,16 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
 
   return (
     <>
-      <Card className="bg-slate-800 dark:bg-gray-800 text-white border-slate-700 dark:border-gray-700 rounded-xl overflow-hidden mb-4 w-full">
+      <Card className="bg-card border-border rounded-xl overflow-hidden mb-4 w-full shadow-lg">
         <CardContent className="p-4 sm:p-6">
           {/* Header with price, status, and actions */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-2xl sm:text-3xl font-bold text-white">
+              <span className="text-2xl sm:text-3xl font-bold text-foreground">
                 ${bounty.price}
               </span>
               {bounty.currency !== 'USD' && (
-                <span className="text-sm text-gray-400 dark:text-gray-300 uppercase">
+                <span className="text-sm text-muted-foreground uppercase">
                   {bounty.currency}
                 </span>
               )}
@@ -79,22 +79,22 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 w-8 p-0 text-gray-400 dark:text-gray-300 hover:text-gray-200 hover:bg-slate-700/50 dark:hover:bg-gray-700/50 rounded-full transition-colors"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-slate-800 dark:bg-gray-800 border-slate-700 dark:border-gray-700">
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem 
                       onClick={() => setIsEditModalOpen(true)}
-                      className="text-gray-200 dark:text-gray-100 hover:bg-slate-700 dark:hover:bg-gray-700 hover:text-white focus:bg-slate-700 dark:focus:bg-gray-700 focus:text-white cursor-pointer"
+                      className="cursor-pointer"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-red-400 hover:bg-red-900/20 hover:text-red-300 focus:bg-red-900/20 focus:text-red-300 cursor-pointer"
+                      className="text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
                     >
                       <Trash className="h-4 w-4 mr-2" />
                       Delete
@@ -106,12 +106,12 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
           </div>
 
           {/* Title */}
-          <h3 className="text-xl sm:text-2xl font-semibold mb-3 text-white">
+          <h3 className="text-xl sm:text-2xl font-semibold mb-3 text-foreground">
             {bounty.title}
           </h3>
 
           {/* Description */}
-          <p className="text-gray-300 dark:text-gray-200 text-sm sm:text-base leading-relaxed mb-4 line-clamp-3">
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-4 line-clamp-3">
             {bounty.description}
           </p>
 
@@ -121,7 +121,7 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
               {bounty.tags.map((tag, index) => (
                 <span 
                   key={index}
-                  className="text-blue-400 dark:text-blue-300 text-xs sm:text-sm hover:underline cursor-pointer bg-blue-900/20 dark:bg-blue-900/30 px-2 py-1 rounded-full border border-blue-800 dark:border-blue-700"
+                  className="text-primary text-xs sm:text-sm hover:underline cursor-pointer bg-primary/10 px-2 py-1 rounded-full border border-primary/20"
                 >
                   #{tag}
                 </span>
@@ -140,12 +140,12 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
               </Avatar>
               <div className="flex flex-col">
                 <span 
-                  className="font-medium text-white cursor-pointer hover:text-blue-400 dark:hover:text-blue-300 text-sm sm:text-base"
+                  className="font-medium text-foreground cursor-pointer hover:text-primary text-sm sm:text-base"
                   onClick={onAuthorClick}
                 >
                   {bounty.author}
                 </span>
-                <span className="text-gray-400 dark:text-gray-300 text-xs sm:text-sm">
+                <span className="text-muted-foreground text-xs sm:text-sm">
                   {bounty.createdAt}
                 </span>
               </div>
