@@ -168,8 +168,15 @@ const Profile = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Profile Card */}
-        <Card className="bg-card/90 backdrop-blur-sm border-0 shadow-lg rounded-xl overflow-hidden">
-          <CardContent className="p-4 sm:p-6">
+        <Card className="border-0 shadow-lg rounded-xl overflow-hidden relative">
+          {/* Profile Banner Background */}
+          <ProfileBanner 
+            bannerType={profile.banner_type}
+            bannerValue={profile.banner_value}
+            className="absolute inset-0 opacity-20"
+          />
+          <div className="absolute inset-0 bg-card/90 backdrop-blur-sm"></div>
+          <CardContent className="relative z-10 p-4 sm:p-6">
             <div className={`flex ${getFlexDirection()} ${alignment === 'center' ? 'gap-6' : 'gap-4'} ${getAlignmentClasses()}`}>
               {/* Avatar - positioned first in center alignment for pyramid structure */}
               {alignment === 'center' && (
