@@ -40,10 +40,9 @@ const Index = () => {
     discussions,
     loading: discussionsLoading,
     createDiscussion,
-    updateDiscussion,
+    editDiscussion,
     deleteDiscussion,
-    toggleLike: toggleDiscussionLike,
-    refetch: refetchDiscussions
+    toggleLike: toggleDiscussionLike
   } = useDiscussions();
 
   const {
@@ -55,7 +54,7 @@ const Index = () => {
     refetch: refetchBounties
   } = useBounties();
 
-  const { searchResults, isSearching, performSearch } = useSearch();
+  const { searchResults, loading: isSearching, performSearch } = useSearch();
 
   const displayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
   const userInitials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
@@ -63,22 +62,24 @@ const Index = () => {
   const uniqueTags = useMemo(() => {
     const allTags = new Set<string>();
     discussions.forEach(discussion => {
-      discussion.tags.forEach(tag => allTags.add(tag));
+      discussion.discussion_tags.forEach(tagObj => allTags.add(tagObj.tag));
     });
     bounties.forEach(bounty => {
-      bounty.tags.forEach(tag => allTags.add(tag));
+      bounty.bounty_tags.forEach(tagObj => allTags.add(tagObj.tag));
     });
     return Array.from(allTags);
   }, [discussions, bounties]);
 
   const filteredAndSortedDiscussions = useMemo(() => {
     let filtered = discussions.filter(discussion => {
+      const authorName = discussion.profiles?.full_name || discussion.profiles?.username || 'Anonymous';
       const matchesSearch = !searchQuery || 
         discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         discussion.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.author.toLowerCase().includes(searchQuery.toLowerCase());
+        authorName.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesTag = !filterTag || discussion.tags.includes(filterTag);
+      const discussionTags = discussion.discussion_tags.map(tagObj => tagObj.tag);
+      const matchesTag = !filterTag || discussionTags.includes(filterTag);
       
       return matchesSearch && matchesTag;
     });
@@ -86,25 +87,27 @@ const Index = () => {
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'most-liked':
-          return b.likesCount - a.likesCount;
+          return b.likes_count - a.likes_count;
         case 'most-replies':
-          return b.repliesCount - a.repliesCount;
+          return b.replies_count - a.replies_count;
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
   }, [discussions, searchQuery, filterTag, sortBy]);
 
   const filteredAndSortedBounties = useMemo(() => {
     let filtered = bounties.filter(bounty => {
+      const authorName = bounty.profiles?.full_name || bounty.profiles?.username || 'Anonymous';
       const matchesSearch = !searchQuery || 
         bounty.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         bounty.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bounty.author.toLowerCase().includes(searchQuery.toLowerCase());
+        authorName.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesTag = !filterTag || bounty.tags.includes(filterTag);
+      const bountyTags = bounty.bounty_tags.map(tagObj => tagObj.tag);
+      const matchesTag = !filterTag || bountyTags.includes(filterTag);
       
       return matchesSearch && matchesTag;
     });
@@ -112,13 +115,13 @@ const Index = () => {
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'highest-price':
           return b.price - a.price;
         case 'lowest-price':
           return a.price - b.price;
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
   }, [bounties, searchQuery, filterTag, sortBy]);
@@ -126,7 +129,6 @@ const Index = () => {
   const handleCreateDiscussion = async (discussionData: any) => {
     try {
       await createDiscussion(discussionData);
-      refetchDiscussions();
       toast({
         title: "Discussion posted!",
         description: "Your discussion has been shared with the community."
@@ -144,7 +146,6 @@ const Index = () => {
   const handleCreateBounty = async (bountyData: any) => {
     try {
       await createBounty(bountyData);
-      refetchBounties();
       toast({
         title: "Bounty posted!",
         description: "Your bounty has been posted successfully."
@@ -161,8 +162,7 @@ const Index = () => {
 
   const handleUpdateDiscussion = async (discussionId: string, updates: any) => {
     try {
-      await updateDiscussion(discussionId, updates);
-      refetchDiscussions();
+      await editDiscussion(discussionId, updates);
       toast({
         title: "Discussion updated",
         description: "Your discussion has been updated successfully."
@@ -180,7 +180,6 @@ const Index = () => {
   const handleDeleteDiscussion = async (discussionId: string) => {
     try {
       await deleteDiscussion(discussionId);
-      refetchDiscussions();
       toast({
         title: "Discussion deleted",
         description: "The discussion has been deleted successfully."
@@ -198,7 +197,6 @@ const Index = () => {
   const handleUpdateBounty = async (bountyId: string, updates: any) => {
     try {
       await updateBounty(bountyId, updates);
-      refetchBounties();
       toast({
         title: "Bounty updated",
         description: "Your bounty has been updated successfully."
@@ -216,7 +214,6 @@ const Index = () => {
   const handleDeleteBounty = async (bountyId: string) => {
     try {
       await deleteBounty(bountyId);
-      refetchBounties();
       toast({
         title: "Bounty deleted",
         description: "The bounty has been deleted successfully."
@@ -315,14 +312,11 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Search Section */}
         <SearchAndFilter
-          searchQuery={searchQuery}
-          onSearchChange={handleSearch}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          filterTag={filterTag}
-          onFilterTagChange={setFilterTag}
-          availableTags={uniqueTags}
-          activeTab={activeTab}
+          onSearch={handleSearch}
+          onFilterByTag={setFilterTag}
+          activeFilters={filterTag ? [filterTag] : []}
+          onRemoveFilter={() => setFilterTag('')}
+          popularTags={uniqueTags}
         />
 
         {/* Search Results */}
@@ -330,11 +324,7 @@ const Index = () => {
           <SearchResults 
             results={searchResults}
             loading={isSearching}
-            onDiscussionLike={toggleDiscussionLike}
-            onDiscussionEdit={handleUpdateDiscussion}
-            onDiscussionDelete={handleDeleteDiscussion}
-            onBountyEdit={handleUpdateBounty}
-            onBountyDelete={handleDeleteBounty}
+            onClose={() => setSearchQuery('')}
           />
         )}
 
@@ -375,16 +365,35 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  filteredAndSortedDiscussions.map((discussion) => (
-                    <DiscussionCard
-                      key={discussion.id}
-                      discussion={discussion}
-                      onLike={toggleDiscussionLike}
-                      onAuthorClick={() => navigate(`/profile/${discussion.authorId}`)}
-                      onEdit={handleUpdateDiscussion}
-                      onDelete={handleDeleteDiscussion}
-                    />
-                  ))
+                  filteredAndSortedDiscussions.map((discussion) => {
+                    const discussionForCard = {
+                      id: discussion.id,
+                      title: discussion.title,
+                      body: discussion.body,
+                      author: discussion.profiles?.full_name || discussion.profiles?.username || 'Anonymous',
+                      authorId: discussion.author_id,
+                      authorInitials: (discussion.profiles?.full_name || discussion.profiles?.username || 'A').split(' ').map(n => n[0]).join('').toUpperCase(),
+                      authorAvatarUrl: discussion.profiles?.avatar_url || undefined,
+                      createdAt: new Date(discussion.created_at).toLocaleDateString(),
+                      tags: discussion.discussion_tags.map(tagObj => tagObj.tag),
+                      repliesCount: discussion.replies_count,
+                      likesCount: discussion.likes_count,
+                      isLiked: discussion.user_liked || false,
+                      statusMessage: discussion.profiles?.status_message || undefined,
+                      image_urls: discussion.image_urls
+                    };
+                    
+                    return (
+                      <DiscussionCard
+                        key={discussion.id}
+                        discussion={discussionForCard}
+                        onLike={toggleDiscussionLike}
+                        onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                        onEdit={handleUpdateDiscussion}
+                        onDelete={handleDeleteDiscussion}
+                      />
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
@@ -411,15 +420,32 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  filteredAndSortedBounties.map((bounty) => (
-                    <BountyCard
-                      key={bounty.id}
-                      bounty={bounty}
-                      onAuthorClick={() => navigate(`/profile/${bounty.authorId}`)}
-                      onEdit={handleUpdateBounty}
-                      onDelete={handleDeleteBounty}
-                    />
-                  ))
+                  filteredAndSortedBounties.map((bounty) => {
+                    const bountyForCard = {
+                      id: bounty.id,
+                      title: bounty.title,
+                      description: bounty.description,
+                      price: bounty.price,
+                      currency: bounty.currency,
+                      author: bounty.profiles?.full_name || bounty.profiles?.username || 'Anonymous',
+                      authorId: bounty.author_id,
+                      authorInitials: (bounty.profiles?.full_name || bounty.profiles?.username || 'A').split(' ').map(n => n[0]).join('').toUpperCase(),
+                      authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                      createdAt: new Date(bounty.created_at).toLocaleDateString(),
+                      status: bounty.status,
+                      tags: bounty.bounty_tags.map(tagObj => tagObj.tag)
+                    };
+                    
+                    return (
+                      <BountyCard
+                        key={bounty.id}
+                        bounty={bountyForCard}
+                        onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                        onEdit={handleUpdateBounty}
+                        onDelete={handleDeleteBounty}
+                      />
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
@@ -432,7 +458,8 @@ const Index = () => {
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={() => {}}
       />
     </div>
   );
