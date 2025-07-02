@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, ArrowLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,17 +100,6 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
             {getTitle()}
           </h1>
           <div className="flex items-center gap-2">
-            {!selectedChatId && !showUserList && !showSearchResults && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNewChat}
-                className="h-8 px-2 text-blue-600 hover:text-blue-700"
-                disabled={loading}
-              >
-                New
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="sm"
@@ -200,46 +190,85 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
           {getTitle()}
         </CardTitle>
         <div className="flex items-center gap-2">
-          {!selectedChatId && !showUserList && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNewChat}
-              className="h-8 px-2 text-blue-600 hover:text-blue-700"
-              disabled={loading}
-            >
-              New
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="sm"
             onClick={getBackAction()}
             className="h-8 w-8 p-0"
           >
-            {selectedChatId || showUserList ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
+            {selectedChatId || showUserList || showSearchResults ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="p-0 h-80 overflow-hidden">
-        {selectedChatId ? (
-          <ChatConversation
-            chatId={selectedChatId}
-            onBack={handleBackToList}
-          />
-        ) : showUserList ? (
-          <UserList
-            onSelectUser={handleSelectUser}
-            onBack={handleBackToList}
-          />
-        ) : (
-          <ChatList
-            chats={chats}
-            loading={loading}
-            onSelectChat={handleSelectChat}
-            onNewChat={handleNewChat}
-          />
+        {/* Search Bar for Desktop */}
+        {!selectedChatId && (
+          <div className="p-4 border-b border-gray-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search users to message..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10 bg-gray-50/50 border-gray-200/50"
+              />
+            </div>
+          </div>
         )}
+
+        {/* Desktop Content */}
+        <div className="h-full overflow-hidden">
+          {selectedChatId ? (
+            <ChatConversation
+              chatId={selectedChatId}
+              onBack={handleBackToList}
+            />
+          ) : showSearchResults ? (
+            <div className="h-full overflow-y-auto">
+              {userSearchResults.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                  <Search className="h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-500">No users found</p>
+                </div>
+              ) : (
+                <div className="p-2">
+                  {userSearchResults.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => handleSelectSearchUser(user.id)}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
+                        {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">
+                          {user.fullName || user.username || 'Unknown User'}
+                        </p>
+                        {user.username && (
+                          <p className="text-sm text-gray-500">@{user.username}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : showUserList ? (
+            <UserList
+              onSelectUser={handleSelectUser}
+              onBack={handleBackToList}
+            />
+          ) : (
+            <ChatList
+              chats={chats}
+              loading={loading}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+            />
+          )}
+        </div>
       </CardContent>
     </Card>
   );
