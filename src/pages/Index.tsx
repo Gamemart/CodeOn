@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
-import { useSearch } from '@/hooks/use-search';
+import { useSearch } from '@/hooks/useSearch';
 import { useBounties } from '@/hooks/useBounties';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
@@ -175,7 +175,7 @@ const Index = () => {
         </div>
 
         {/* Mobile Content */}
-        <div className="p-3">
+        <div className="p-4">
           {/* Search Results */}
           {showSearchResults && (
             <div className="mb-4">
@@ -200,7 +200,7 @@ const Index = () => {
 
           {/* Feed */}
           {!showSearchResults && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {activeTab === 'home' ? (
                 // Discussion Feed
                 discussionsLoading ? (
@@ -250,46 +250,44 @@ const Index = () => {
                   </div>
                 )
               ) : (
-                // Bounty Feed - Mobile Responsive
+                // Bounty Feed
                 bountiesLoading ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-500">Loading bounties...</p>
                   </div>
                 ) : bounties.length > 0 ? (
-                  <div className="space-y-3">
-                    {bounties.map((bounty) => {
-                      const authorName = bounty.profiles?.full_name || 
-                                       bounty.profiles?.username || 
-                                       'Anonymous User';
-                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-                      const tags = bounty.bounty_tags.map(tag => tag.tag);
-                      const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+                  bounties.map((bounty) => {
+                    const authorName = bounty.profiles?.full_name || 
+                                     bounty.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = bounty.bounty_tags.map(tag => tag.tag);
+                    const timeAgo = new Date(bounty.created_at).toLocaleDateString();
 
-                      return (
-                        <BountyCard
-                          key={bounty.id}
-                          bounty={{
-                            id: bounty.id,
-                            title: bounty.title,
-                            description: bounty.description,
-                            price: bounty.price,
-                            currency: bounty.currency,
-                            author: authorName,
-                            authorId: bounty.author_id,
-                            authorInitials,
-                            authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
-                            createdAt: timeAgo,
-                            status: bounty.status,
-                            tags
-                          }}
-                          onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
-                          onEdit={updateBounty}
-                          onDelete={deleteBounty}
-                        />
-                      );
-                    })}
-                  </div>
+                    return (
+                      <BountyCard
+                        key={bounty.id}
+                        bounty={{
+                          id: bounty.id,
+                          title: bounty.title,
+                          description: bounty.description,
+                          price: bounty.price,
+                          currency: bounty.currency,
+                          author: authorName,
+                          authorId: bounty.author_id,
+                          authorInitials,
+                          authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                          createdAt: timeAgo,
+                          status: bounty.status,
+                          tags
+                        }}
+                        onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                        onEdit={updateBounty}
+                        onDelete={deleteBounty}
+                      />
+                    );
+                  })
                 ) : (
                   <div className="text-center py-12">
                     <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -566,46 +564,44 @@ const Index = () => {
                     </div>
                   )
                 ) : (
-                  // Bounty Feed - Desktop Responsive Grid
+                  // Bounty Feed
                   bountiesLoading ? (
                     <div className="text-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                       <p className="text-gray-500">Loading bounties...</p>
                     </div>
                   ) : bounties.length > 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {bounties.map((bounty) => {
-                        const authorName = bounty.profiles?.full_name || 
-                                         bounty.profiles?.username || 
-                                         'Anonymous User';
-                        const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
-                        const tags = bounty.bounty_tags.map(tag => tag.tag);
-                        const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+                    bounties.map((bounty) => {
+                      const authorName = bounty.profiles?.full_name || 
+                                       bounty.profiles?.username || 
+                                       'Anonymous User';
+                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const tags = bounty.bounty_tags.map(tag => tag.tag);
+                      const timeAgo = new Date(bounty.created_at).toLocaleDateString();
 
-                        return (
-                          <BountyCard
-                            key={bounty.id}
-                            bounty={{
-                              id: bounty.id,
-                              title: bounty.title,
-                              description: bounty.description,
-                              price: bounty.price,
-                              currency: bounty.currency,
-                              author: authorName,
-                              authorId: bounty.author_id,
-                              authorInitials,
-                              authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
-                              createdAt: timeAgo,
-                              status: bounty.status,
-                              tags
-                            }}
-                            onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
-                            onEdit={updateBounty}
-                            onDelete={deleteBounty}
-                          />
-                        );
-                      })}
-                    </div>
+                      return (
+                        <BountyCard
+                          key={bounty.id}
+                          bounty={{
+                            id: bounty.id,
+                            title: bounty.title,
+                            description: bounty.description,
+                            price: bounty.price,
+                            currency: bounty.currency,
+                            author: authorName,
+                            authorId: bounty.author_id,
+                            authorInitials,
+                            authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                            createdAt: timeAgo,
+                            status: bounty.status,
+                            tags
+                          }}
+                          onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                          onEdit={updateBounty}
+                          onDelete={deleteBounty}
+                        />
+                      );
+                    })
                   ) : (
                     <div className="text-center py-12">
                       <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
