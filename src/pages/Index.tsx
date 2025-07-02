@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit, DollarSign } from 'lucide-react';
@@ -11,6 +12,7 @@ import CreateDiscussion from '@/components/CreateDiscussion';
 import SearchResults from '@/components/SearchResults';
 import BountyCard from '@/components/BountyCard';
 import CreateBounty from '@/components/CreateBounty';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -92,24 +94,24 @@ const Index = () => {
     // Full screen chat view
     if (showMobileChat) {
       return (
-        <div className="h-screen bg-white">
+        <div className="h-screen bg-white dark:bg-gray-900">
           <ChatWindow onClose={() => setShowMobileChat(false)} isMobile={true} />
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">
         {/* Mobile Header */}
-        <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 p-4">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 p-4">
           <div className="flex items-center justify-between mb-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="p-1">
                   <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                    <div className="w-4 h-0.5 bg-gray-600"></div>
-                    <div className="w-4 h-0.5 bg-gray-600"></div>
-                    <div className="w-4 h-0.5 bg-gray-600"></div>
+                    <div className="w-4 h-0.5 bg-gray-600 dark:bg-gray-300"></div>
+                    <div className="w-4 h-0.5 bg-gray-600 dark:bg-gray-300"></div>
+                    <div className="w-4 h-0.5 bg-gray-600 dark:bg-gray-300"></div>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -145,17 +147,20 @@ const Index = () => {
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-50/50 border-gray-200/50 rounded-full"
+                className="bg-gray-50/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50 rounded-full"
               />
             </div>
 
-            {/* Profile Avatar */}
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-                {userInitials}
-              </AvatarFallback>
-            </Avatar>
+            {/* Theme Toggle and Profile Avatar */}
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </div>
 
           {/* Navigation Tabs */}
@@ -164,8 +169,8 @@ const Index = () => {
               onClick={() => setActiveTab('home')}
               className={`pb-2 border-b-2 font-medium ${
                 activeTab === 'home' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Home
@@ -174,8 +179,8 @@ const Index = () => {
               onClick={() => setActiveTab('bounty')}
               className={`pb-2 border-b-2 font-medium ${
                 activeTab === 'bounty' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               Bounty
@@ -215,7 +220,7 @@ const Index = () => {
                 discussionsLoading ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading discussions...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading discussions...</p>
                   </div>
                 ) : discussions.length > 0 ? (
                   discussions.map((discussion) => {
@@ -254,8 +259,8 @@ const Index = () => {
                 ) : (
                   <div className="text-center py-12">
                     <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                    <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No discussions found</h3>
+                    <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or create the first discussion!</p>
                   </div>
                 )
               ) : (
@@ -263,7 +268,7 @@ const Index = () => {
                 bountiesLoading ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading bounties...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading bounties...</p>
                   </div>
                 ) : bounties.length > 0 ? (
                   bounties.map((bounty) => {
@@ -300,8 +305,8 @@ const Index = () => {
                 ) : (
                   <div className="text-center py-12">
                     <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
-                    <p className="text-gray-500">Create the first bounty and start earning!</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No bounties found</h3>
+                    <p className="text-gray-500 dark:text-gray-400">Create the first bounty and start earning!</p>
                   </div>
                 )
               )}
@@ -310,21 +315,21 @@ const Index = () => {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/50 p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-700/50 p-4 z-50">
           <div className="flex justify-around items-center">
             <button 
               onClick={() => setActiveTab('home')}
               className="flex flex-col items-center space-y-1"
             >
-              <Home className={`h-5 w-5 ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`} />
-              <span className={`text-xs ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`}>Home</span>
+              <Home className={`h-5 w-5 ${activeTab === 'home' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`} />
+              <span className={`text-xs ${activeTab === 'home' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>Home</span>
             </button>
             <button 
               onClick={() => setShowMobileChat(true)}
               className="flex flex-col items-center space-y-1"
             >
-              <MessageCircle className="h-5 w-5 text-gray-600" />
-              <span className="text-xs text-gray-600">Chats</span>
+              <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-xs text-gray-600 dark:text-gray-400">Chats</span>
             </button>
             <button className="flex flex-col items-center space-y-1">
               <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -332,14 +337,14 @@ const Index = () => {
                   <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
                 </div>
               </div>
-              <span className="text-xs text-gray-600">Post</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Post</span>
             </button>
             <button 
               onClick={() => setActiveTab('bounty')}
               className="flex flex-col items-center space-y-1"
             >
-              <DollarSign className={`h-5 w-5 ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`} />
-              <span className={`text-xs ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`}>Bounty</span>
+              <DollarSign className={`h-5 w-5 ${activeTab === 'bounty' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`} />
+              <span className={`text-xs ${activeTab === 'bounty' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>Bounty</span>
             </button>
           </div>
         </div>
@@ -349,12 +354,12 @@ const Index = () => {
 
   // Desktop Layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="flex h-screen">
         {/* Left Sidebar */}
-        <div className="w-64 bg-white/80 backdrop-blur-md border-r border-gray-200/50 flex flex-col">
+        <div className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-r border-gray-200/50 dark:border-gray-700/50 flex flex-col">
           {/* Logo */}
-          <div className="p-6 border-b border-gray-200/50">
+          <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 flex items-center justify-center">
                 <img 
@@ -363,7 +368,7 @@ const Index = () => {
                   className="w-8 h-8 object-contain"
                 />
               </div>
-              <span className="text-xl font-bold text-gray-900">ESTRANGHERO</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">ESTRANGHERO</span>
             </div>
           </div>
 
@@ -374,7 +379,7 @@ const Index = () => {
                 placeholder="Search discussions and users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-50/50 border-gray-200/50"
+                className="bg-gray-50/50 dark:bg-gray-800/50 border-gray-200/50 dark:border-gray-700/50"
               />
             </div>
           </div>
@@ -385,14 +390,14 @@ const Index = () => {
               <Button 
                 variant="ghost" 
                 className={`w-full justify-start ${
-                  activeTab === 'home' ? 'text-blue-600 bg-blue-50' : ''
+                  activeTab === 'home' ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' : ''
                 }`}
                 onClick={() => setActiveTab('home')}
               >
                 <Home className="h-4 w-4 mr-3" />
                 Home
                 {activeTab === 'home' && (
-                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                  <span className="ml-auto bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs px-2 py-1 rounded-full">
                     {discussions.length}
                   </span>
                 )}
@@ -400,14 +405,14 @@ const Index = () => {
               <Button 
                 variant="ghost" 
                 className={`w-full justify-start ${
-                  activeTab === 'bounty' ? 'text-blue-600 bg-blue-50' : ''
+                  activeTab === 'bounty' ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' : ''
                 }`}
                 onClick={() => setActiveTab('bounty')}
               >
                 <DollarSign className="h-4 w-4 mr-3" />
                 Bounty
                 {activeTab === 'bounty' && (
-                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                  <span className="ml-auto bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs px-2 py-1 rounded-full">
                     {bounties.length}
                   </span>
                 )}
@@ -424,42 +429,45 @@ const Index = () => {
           </nav>
 
           {/* User Profile in Sidebar */}
-          <div className="p-4 border-t border-gray-200/50">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start p-2">
-                  <Avatar className="h-8 w-8 mr-3">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-left">
-                    <div className="font-medium text-sm">{userDisplayName}</div>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
-                  <User className="h-4 w-4 mr-2" />
-                  My Profile
-                </DropdownMenuItem>
-                {(userRole === 'admin' || userRole === 'moderator') && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Dashboard
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="p-4 border-t border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex items-center justify-between mb-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start p-2">
+                    <Avatar className="h-8 w-8 mr-3">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left">
+                      <div className="font-medium text-sm">{userDisplayName}</div>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </DropdownMenuItem>
+                  {(userRole === 'admin' || userRole === 'moderator') && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
 
@@ -467,13 +475,13 @@ const Index = () => {
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             {/* Header Tabs */}
-            <div className="flex gap-8 mb-6 border-b border-gray-200/50">
+            <div className="flex gap-8 mb-6 border-b border-gray-200/50 dark:border-gray-700/50">
               <button 
                 onClick={() => setActiveTab('home')}
                 className={`pb-3 border-b-2 font-medium ${
                   activeTab === 'home' 
-                    ? 'border-blue-500 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
               >
                 Home
@@ -482,8 +490,8 @@ const Index = () => {
                 onClick={() => setActiveTab('bounty')}
                 className={`pb-3 border-b-2 font-medium ${
                   activeTab === 'bounty' 
-                    ? 'border-blue-500 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
               >
                 Bounty
@@ -520,7 +528,7 @@ const Index = () => {
                   discussionsLoading ? (
                     <div className="text-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-500">Loading discussions...</p>
+                      <p className="text-gray-500 dark:text-gray-400">Loading discussions...</p>
                     </div>
                   ) : discussions.length > 0 ? (
                     discussions.map((discussion) => {
@@ -559,8 +567,8 @@ const Index = () => {
                   ) : (
                     <div className="text-center py-12">
                       <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                      <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No discussions found</h3>
+                      <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or create the first discussion!</p>
                     </div>
                   )
                 ) : (
@@ -568,7 +576,7 @@ const Index = () => {
                   bountiesLoading ? (
                     <div className="text-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-500">Loading bounties...</p>
+                      <p className="text-gray-500 dark:text-gray-400">Loading bounties...</p>
                     </div>
                   ) : bounties.length > 0 ? (
                     bounties.map((bounty) => {
@@ -605,8 +613,8 @@ const Index = () => {
                   ) : (
                     <div className="text-center py-12">
                       <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
-                      <p className="text-gray-500">Create the first bounty and start earning!</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No bounties found</h3>
+                      <p className="text-gray-500 dark:text-gray-400">Create the first bounty and start earning!</p>
                     </div>
                   )
                 )}
