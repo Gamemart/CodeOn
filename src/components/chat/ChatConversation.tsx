@@ -109,14 +109,6 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-2 p-3 border-b">
-        <Button variant="ghost" size="sm" onClick={onBack} className="h-8 w-8 p-0">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-medium">Chat</span>
-      </div>
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {loading ? (
