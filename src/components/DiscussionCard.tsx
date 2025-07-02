@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ReplySection from '@/components/ReplySection';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserRoles } from '@/hooks/useUserRoles';
 
 interface Discussion {
   id: string;
@@ -39,7 +38,6 @@ interface DiscussionCardProps {
 
 const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }: DiscussionCardProps) => {
   const { user } = useAuth();
-  const { userRole } = useUserRoles();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState(discussion.body);
@@ -47,8 +45,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   const [showReplies, setShowReplies] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
-  const canEdit = isAuthor;
-  const canDelete = isAuthor || userRole === 'admin' || userRole === 'moderator';
 
   // Extract image URLs from body content - improved regex to handle Supabase URLs
   const extractImageUrls = (content: string): string[] => {
@@ -61,6 +57,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
     return matches;
   };
 
+  // Remove image markdown from body for display
   const cleanBodyText = (content: string): string => {
     return content.replace(/!\[.*?\]\(https?:\/\/[^\s)]+\)/g, '').trim();
   };
@@ -145,7 +142,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           </div>
           
           {/* Actions Menu */}
-          {!isEditing && (canEdit || canDelete) && (
+          {!isEditing && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
@@ -153,20 +150,20 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {canEdit && (
-                  <DropdownMenuItem onClick={handleEdit}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                {canDelete && (
-                  <DropdownMenuItem 
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
+                {isAuthor && (
+                  <>
+                    <DropdownMenuItem onClick={handleEdit}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -284,6 +281,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                 <span className="font-medium">{discussion.repliesCount}</span>
               </button>
+
             </div>
           </div>
         )}

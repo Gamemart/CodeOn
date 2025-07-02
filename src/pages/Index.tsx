@@ -1,466 +1,623 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, MessageCircle, DollarSign, User, Shield, LogOut } from 'lucide-react';
+import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import DiscussionCard from '@/components/DiscussionCard';
+import CreateDiscussion from '@/components/CreateDiscussion';
+import SearchResults from '@/components/SearchResults';
+import BountyCard from '@/components/BountyCard';
+import CreateBounty from '@/components/CreateBounty';
 import { useAuth } from '@/hooks/useAuth';
+import { useDiscussions } from '@/hooks/useDiscussions';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
-import { useDiscussions } from '@/hooks/useDiscussions';
-import { useBounties } from '@/hooks/useBounties';
 import { useSearch } from '@/hooks/useSearch';
+import { useBounties } from '@/hooks/useBounties';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
-import CreateDiscussion from '@/components/CreateDiscussion';
-import CreateBounty from '@/components/CreateBounty';
-import DiscussionCard from '@/components/DiscussionCard';
-import BountyCard from '@/components/BountyCard';
 import FloatingChatHead from '@/components/chat/FloatingChatHead';
-import AuthModal from '@/components/AuthModal';
-import SearchResults from '@/components/SearchResults';
-import SearchAndFilter from '@/components/SearchAndFilter';
+import ChatWindow from '@/components/chat/ChatWindow';
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
+  const { bounties, loading: bountiesLoading, createBounty, updateBounty, deleteBounty } = useBounties();
   const { userRole } = useUserRoles();
   const { profile } = useProfile();
-  const [activeTab, setActiveTab] = useState('discussions');
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('newest');
-  const [filterTag, setFilterTag] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const { searchResults, loading: searchLoading, performSearch } = useSearch();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [showMobileChat, setShowMobileChat] = useState(false);
+  const [activeTab, setActiveTab] = useState('home');
 
-  const {
-    discussions,
-    loading: discussionsLoading,
-    createDiscussion,
-    editDiscussion,
-    deleteDiscussion,
-    toggleLike: toggleDiscussionLike
-  } = useDiscussions();
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
 
-  const {
-    bounties,
-    loading: bountiesLoading,
-    createBounty,
-    updateBounty,
-    deleteBounty,
-    refetch: refetchBounties
-  } = useBounties();
+  // Handle search
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const debounceTimer = setTimeout(() => {
+        performSearch(searchQuery);
+        setShowSearchResults(true);
+      }, 300);
+      return () => clearTimeout(debounceTimer);
+    } else {
+      setShowSearchResults(false);
+    }
+  }, [searchQuery, performSearch]);
 
-  const { searchResults, loading: isSearching, performSearch } = useSearch();
-
-  const displayName = profile?.full_name || profile?.username || user?.email?.split('@')[0] || 'User';
-  const userInitials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
-
-  const uniqueTags = useMemo(() => {
-    const allTags = new Set<string>();
-    discussions.forEach(discussion => {
-      discussion.discussion_tags.forEach(tagObj => allTags.add(tagObj.tag));
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You've been successfully signed out."
     });
-    bounties.forEach(bounty => {
-      bounty.bounty_tags.forEach(tagObj => allTags.add(tagObj.tag));
-    });
-    return Array.from(allTags);
-  }, [discussions, bounties]);
-
-  const filteredAndSortedDiscussions = useMemo(() => {
-    let filtered = discussions.filter(discussion => {
-      const authorName = discussion.profiles?.full_name || discussion.profiles?.username || 'Anonymous';
-      const matchesSearch = !searchQuery || 
-        discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        discussion.body.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        authorName.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const discussionTags = discussion.discussion_tags.map(tagObj => tagObj.tag);
-      const matchesTag = !filterTag || discussionTags.includes(filterTag);
-      
-      return matchesSearch && matchesTag;
-    });
-
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'most-liked':
-          return b.likes_count - a.likes_count;
-        case 'most-replies':
-          return b.replies_count - a.replies_count;
-        default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-    });
-  }, [discussions, searchQuery, filterTag, sortBy]);
-
-  const filteredAndSortedBounties = useMemo(() => {
-    let filtered = bounties.filter(bounty => {
-      const authorName = bounty.profiles?.full_name || bounty.profiles?.username || 'Anonymous';
-      const matchesSearch = !searchQuery || 
-        bounty.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bounty.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        authorName.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const bountyTags = bounty.bounty_tags.map(tagObj => tagObj.tag);
-      const matchesTag = !filterTag || bountyTags.includes(filterTag);
-      
-      return matchesSearch && matchesTag;
-    });
-
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'highest-price':
-          return b.price - a.price;
-        case 'lowest-price':
-          return a.price - b.price;
-        default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-    });
-  }, [bounties, searchQuery, filterTag, sortBy]);
-
-  const handleCreateDiscussion = async (discussionData: any) => {
-    try {
-      await createDiscussion(discussionData);
-      toast({
-        title: "Discussion posted!",
-        description: "Your discussion has been shared with the community."
-      });
-    } catch (error) {
-      console.error('Error creating discussion:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post discussion. Please try again.",
-        variant: "destructive"
-      });
-    }
+    navigate('/auth');
   };
 
-  const handleCreateBounty = async (bountyData: any) => {
-    try {
-      await createBounty(bountyData);
-      toast({
-        title: "Bounty posted!",
-        description: "Your bounty has been posted successfully."
-      });
-    } catch (error) {
-      console.error('Error creating bounty:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post bounty. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleEditProfile = () => {
+    navigate(`/profile/${user?.id}`);
   };
 
-  const handleUpdateDiscussion = async (discussionId: string, updates: any) => {
-    try {
-      await editDiscussion(discussionId, updates);
-      toast({
-        title: "Discussion updated",
-        description: "Your discussion has been updated successfully."
-      });
-    } catch (error) {
-      console.error('Error updating discussion:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update discussion. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleDeleteDiscussion = async (discussionId: string) => {
-    try {
-      await deleteDiscussion(discussionId);
-      toast({
-        title: "Discussion deleted",
-        description: "The discussion has been deleted successfully."
-      });
-    } catch (error) {
-      console.error('Error deleting discussion:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete discussion. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+  if (!user) {
+    return null;
+  }
 
-  const handleUpdateBounty = async (bountyId: string, updates: any) => {
-    try {
-      await updateBounty(bountyId, updates);
-      toast({
-        title: "Bounty updated",
-        description: "Your bounty has been updated successfully."
-      });
-    } catch (error) {
-      console.error('Error updating bounty:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update bounty. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+  const userDisplayName = profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User';
+  const userInitials = userDisplayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
 
-  const handleDeleteBounty = async (bountyId: string) => {
-    try {
-      await deleteBounty(bountyId);
-      toast({
-        title: "Bounty deleted",
-        description: "The bounty has been deleted successfully."
-      });
-    } catch (error) {
-      console.error('Error deleting bounty:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete bounty. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      performSearch(query.trim());
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Signed out",
-        description: "You've been successfully signed out."
-      });
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">DevConnect</h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2 hover:bg-gray-100/50">
-                      <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs sm:text-sm font-medium">
-                          {userInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden sm:inline font-medium text-gray-700">{displayName}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    {(userRole === 'admin' || userRole === 'moderator') && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
-                        <Shield className="h-4 w-4 mr-2" />
-                        {userRole === 'admin' ? 'Admin Dashboard' : 'Moderation'}
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button 
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Sign In
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 pb-20">
+        {/* Mobile Header */}
+        <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-1">
+                  <div className="w-6 h-6 flex flex-col justify-center space-y-1">
+                    <div className="w-4 h-0.5 bg-gray-600"></div>
+                    <div className="w-4 h-0.5 bg-gray-600"></div>
+                    <div className="w-4 h-0.5 bg-gray-600"></div>
+                  </div>
                 </Button>
-              )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
+                  <User className="h-4 w-4 mr-2" />
+                  My Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEditProfile}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </DropdownMenuItem>
+                {(userRole === 'admin' || userRole === 'moderator') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Search Bar */}
+            <div className="flex-1 mx-4">
+              <Input
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-gray-50/50 border-gray-200/50 rounded-full"
+              />
             </div>
+
+            {/* Profile Avatar */}
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex justify-center space-x-8">
+            <button 
+              onClick={() => setActiveTab('home')}
+              className={`pb-2 border-b-2 font-medium ${
+                activeTab === 'home' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => setActiveTab('bounty')}
+              className={`pb-2 border-b-2 font-medium ${
+                activeTab === 'bounty' 
+                  ? 'border-blue-500 text-blue-600' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Bounty
+            </button>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Search Section */}
-        <SearchAndFilter
-          onSearch={handleSearch}
-          onFilterByTag={setFilterTag}
-          activeFilters={filterTag ? [filterTag] : []}
-          onRemoveFilter={() => setFilterTag('')}
-          popularTags={uniqueTags}
-        />
+        {/* Mobile Content */}
+        <div className="p-4">
+          {/* Search Results */}
+          {showSearchResults && (
+            <div className="mb-4">
+              <SearchResults 
+                results={searchResults} 
+                loading={searchLoading}
+                onClose={() => setShowSearchResults(false)}
+              />
+            </div>
+          )}
 
-        {/* Search Results */}
-        {searchQuery.trim() && (
-          <SearchResults 
-            results={searchResults}
-            loading={isSearching}
-            onClose={() => setSearchQuery('')}
-          />
-        )}
-
-        {/* Main Content Tabs */}
-        {!searchQuery.trim() && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 sm:mb-8">
-              <TabsTrigger value="discussions" className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Discussions</span>
-                <span className="sm:hidden">Chat</span>
-              </TabsTrigger>
-              <TabsTrigger value="bounties" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Bounties
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="discussions" className="space-y-4 sm:space-y-6">
-              {user && (
-                <CreateDiscussion onSubmit={handleCreateDiscussion} />
+          {/* Create Section */}
+          {!showSearchResults && (
+            <div className="mb-4">
+              {activeTab === 'home' ? (
+                <CreateDiscussion onSubmit={createDiscussion} />
+              ) : (
+                <CreateBounty onSubmit={createBounty} />
               )}
+            </div>
+          )}
 
-              <div className="space-y-3 sm:space-y-4">
-                {discussionsLoading ? (
-                  <div className="text-center py-8">
+          {/* Feed */}
+          {!showSearchResults && (
+            <div className="space-y-4">
+              {activeTab === 'home' ? (
+                // Discussion Feed
+                discussionsLoading ? (
+                  <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-500">Loading discussions...</p>
                   </div>
-                ) : filteredAndSortedDiscussions.length === 0 ? (
-                  <Card>
-                    <CardContent className="text-center py-12">
-                      <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
-                      <p className="text-gray-500">
-                        {searchQuery || filterTag ? 'Try adjusting your search or filter.' : 'Be the first to start a discussion!'}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  filteredAndSortedDiscussions.map((discussion) => {
-                    const discussionForCard = {
-                      id: discussion.id,
-                      title: discussion.title,
-                      body: discussion.body,
-                      author: discussion.profiles?.full_name || discussion.profiles?.username || 'Anonymous',
-                      authorId: discussion.author_id,
-                      authorInitials: (discussion.profiles?.full_name || discussion.profiles?.username || 'A').split(' ').map(n => n[0]).join('').toUpperCase(),
-                      authorAvatarUrl: discussion.profiles?.avatar_url || undefined,
-                      createdAt: new Date(discussion.created_at).toLocaleDateString(),
-                      tags: discussion.discussion_tags.map(tagObj => tagObj.tag),
-                      repliesCount: discussion.replies_count,
-                      likesCount: discussion.likes_count,
-                      isLiked: discussion.user_liked || false,
-                      statusMessage: discussion.profiles?.status_message || undefined,
-                      image_urls: discussion.image_urls
-                    };
-                    
+                ) : discussions.length > 0 ? (
+                  discussions.map((discussion) => {
+                    const authorName = discussion.profiles?.full_name || 
+                                     discussion.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = discussion.discussion_tags.map(dt => dt.tag);
+                    const timeAgo = new Date(discussion.created_at).toLocaleDateString();
+
                     return (
                       <DiscussionCard
                         key={discussion.id}
-                        discussion={discussionForCard}
-                        onLike={toggleDiscussionLike}
+                        discussion={{
+                          id: discussion.id,
+                          title: discussion.title,
+                          body: discussion.body,
+                          author: authorName,
+                          authorId: discussion.author_id,
+                          authorInitials,
+                          createdAt: timeAgo,
+                          tags,
+                          repliesCount: discussion.replies_count,
+                          likesCount: discussion.likes_count,
+                          isLiked: discussion.user_liked || false,
+                          statusMessage: discussion.profiles?.status_message || undefined,
+                          authorAvatarUrl: discussion.profiles?.avatar_url || undefined
+                        }}
+                        onLike={toggleLike}
                         onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
-                        onEdit={handleUpdateDiscussion}
-                        onDelete={handleDeleteDiscussion}
+                        onEdit={editDiscussion}
+                        onDelete={deleteDiscussion}
                       />
                     );
                   })
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="bounties" className="space-y-4 sm:space-y-6">
-              {user && (
-                <CreateBounty onSubmit={handleCreateBounty} />
-              )}
-
-              <div className="space-y-3 sm:space-y-4">
-                {bountiesLoading ? (
-                  <div className="text-center py-8">
+                ) : (
+                  <div className="text-center py-12">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
+                    <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                  </div>
+                )
+              ) : (
+                // Bounty Feed
+                bountiesLoading ? (
+                  <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-500">Loading bounties...</p>
                   </div>
-                ) : filteredAndSortedBounties.length === 0 ? (
-                  <Card>
-                    <CardContent className="text-center py-12">
-                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
-                      <p className="text-gray-500">
-                        {searchQuery || filterTag ? 'Try adjusting your search or filter.' : 'Be the first to post a bounty!'}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  filteredAndSortedBounties.map((bounty) => {
-                    const bountyForCard = {
-                      id: bounty.id,
-                      title: bounty.title,
-                      description: bounty.description,
-                      price: bounty.price,
-                      currency: bounty.currency,
-                      author: bounty.profiles?.full_name || bounty.profiles?.username || 'Anonymous',
-                      authorId: bounty.author_id,
-                      authorInitials: (bounty.profiles?.full_name || bounty.profiles?.username || 'A').split(' ').map(n => n[0]).join('').toUpperCase(),
-                      authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
-                      createdAt: new Date(bounty.created_at).toLocaleDateString(),
-                      status: bounty.status,
-                      tags: bounty.bounty_tags.map(tagObj => tagObj.tag)
-                    };
-                    
+                ) : bounties.length > 0 ? (
+                  bounties.map((bounty) => {
+                    const authorName = bounty.profiles?.full_name || 
+                                     bounty.profiles?.username || 
+                                     'Anonymous User';
+                    const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tags = bounty.bounty_tags.map(tag => tag.tag);
+                    const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+
                     return (
                       <BountyCard
                         key={bounty.id}
-                        bounty={bountyForCard}
+                        bounty={{
+                          id: bounty.id,
+                          title: bounty.title,
+                          description: bounty.description,
+                          price: bounty.price,
+                          currency: bounty.currency,
+                          author: authorName,
+                          authorId: bounty.author_id,
+                          authorInitials,
+                          authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                          createdAt: timeAgo,
+                          status: bounty.status,
+                          tags
+                        }}
                         onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
-                        onEdit={handleUpdateBounty}
-                        onDelete={handleDeleteBounty}
+                        onEdit={updateBounty}
+                        onDelete={deleteBounty}
                       />
                     );
                   })
+                ) : (
+                  <div className="text-center py-12">
+                    <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
+                    <p className="text-gray-500">Create the first bounty and start earning!</p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/50 p-4 z-50">
+          <div className="flex justify-around items-center">
+            <button 
+              onClick={() => setActiveTab('home')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <Home className={`h-5 w-5 ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`} />
+              <span className={`text-xs ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-600'}`}>Home</span>
+            </button>
+            <button 
+              onClick={() => setShowMobileChat(true)}
+              className="flex flex-col items-center space-y-1"
+            >
+              <MessageCircle className="h-5 w-5 text-gray-600" />
+              <span className="text-xs text-gray-600">Chats</span>
+            </button>
+            <button className="flex flex-col items-center space-y-1">
+              <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-sm flex items-center justify-center">
+                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                </div>
+              </div>
+              <span className="text-xs text-gray-600">Post</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab('bounty')}
+              className="flex flex-col items-center space-y-1"
+            >
+              <DollarSign className={`h-5 w-5 ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`} />
+              <span className={`text-xs ${activeTab === 'bounty' ? 'text-blue-600' : 'text-gray-600'}`}>Bounty</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Chat Window */}
+        {showMobileChat && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm h-96">
+              <ChatWindow onClose={() => setShowMobileChat(false)} />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop Layout
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
+      <div className="flex h-screen">
+        {/* Left Sidebar */}
+        <div className="w-64 bg-white/80 backdrop-blur-md border-r border-gray-200/50 flex flex-col">
+          {/* Logo */}
+          <div className="p-6 border-b border-gray-200/50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/7afeeb37-7c54-4797-96a2-394387235bdd.png" 
+                  alt="ESTRANGHERO Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+              <span className="text-xl font-bold text-gray-900">ESTRANGHERO</span>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="p-4">
+            <div className="relative">
+              <Input
+                placeholder="Search discussions and users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-gray-50/50 border-gray-200/50"
+              />
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            <div className="space-y-1">
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${
+                  activeTab === 'home' ? 'text-blue-600 bg-blue-50' : ''
+                }`}
+                onClick={() => setActiveTab('home')}
+              >
+                <Home className="h-4 w-4 mr-3" />
+                Home
+                {activeTab === 'home' && (
+                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                    {discussions.length}
+                  </span>
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`w-full justify-start ${
+                  activeTab === 'bounty' ? 'text-blue-600 bg-blue-50' : ''
+                }`}
+                onClick={() => setActiveTab('bounty')}
+              >
+                <DollarSign className="h-4 w-4 mr-3" />
+                Bounty
+                {activeTab === 'bounty' && (
+                  <span className="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                    {bounties.length}
+                  </span>
+                )}
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Bell className="h-4 w-4 mr-3" />
+                Notifications
+              </Button>
+              <Button variant="ghost" className="w-full justify-start" onClick={handleEditProfile}>
+                <Edit className="h-4 w-4 mr-3" />
+                Edit Profile
+              </Button>
+            </div>
+          </nav>
+
+          {/* User Profile in Sidebar */}
+          <div className="p-4 border-t border-gray-200/50">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start p-2">
+                  <Avatar className="h-8 w-8 mr-3">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-left">
+                    <div className="font-medium text-sm">{userDisplayName}</div>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)}>
+                  <User className="h-4 w-4 mr-2" />
+                  My Profile
+                </DropdownMenuItem>
+                {(userRole === 'admin' || userRole === 'moderator') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Main Content - Full Width */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
+            {/* Header Tabs */}
+            <div className="flex gap-8 mb-6 border-b border-gray-200/50">
+              <button 
+                onClick={() => setActiveTab('home')}
+                className={`pb-3 border-b-2 font-medium ${
+                  activeTab === 'home' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Home
+              </button>
+              <button 
+                onClick={() => setActiveTab('bounty')}
+                className={`pb-3 border-b-2 font-medium ${
+                  activeTab === 'bounty' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Bounty
+              </button>
+            </div>
+
+            {/* Search Results */}
+            {showSearchResults && (
+              <div className="mb-6">
+                <SearchResults 
+                  results={searchResults} 
+                  loading={searchLoading}
+                  onClose={() => setShowSearchResults(false)}
+                />
+              </div>
+            )}
+
+            {/* Create Section */}
+            {!showSearchResults && (
+              <div className="mb-6">
+                {activeTab === 'home' ? (
+                  <CreateDiscussion onSubmit={createDiscussion} />
+                ) : (
+                  <CreateBounty onSubmit={createBounty} />
                 )}
               </div>
-            </TabsContent>
-          </Tabs>
-        )}
-      </main>
+            )}
 
-      {/* Floating Components */}
-      {user && <FloatingChatHead />}
-      
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)}
-        onLogin={() => {}}
-      />
+            {/* Feed */}
+            {!showSearchResults && (
+              <div className="space-y-4">
+                {activeTab === 'home' ? (
+                  // Discussion Feed
+                  discussionsLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-500">Loading discussions...</p>
+                    </div>
+                  ) : discussions.length > 0 ? (
+                    discussions.map((discussion) => {
+                      const authorName = discussion.profiles?.full_name || 
+                                       discussion.profiles?.username || 
+                                       'Anonymous User';
+                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const tags = discussion.discussion_tags.map(dt => dt.tag);
+                      const timeAgo = new Date(discussion.created_at).toLocaleDateString();
+
+                      return (
+                        <DiscussionCard
+                          key={discussion.id}
+                          discussion={{
+                            id: discussion.id,
+                            title: discussion.title,
+                            body: discussion.body,
+                            author: authorName,
+                            authorId: discussion.author_id,
+                            authorInitials,
+                            createdAt: timeAgo,
+                            tags,
+                            repliesCount: discussion.replies_count,
+                            likesCount: discussion.likes_count,
+                            isLiked: discussion.user_liked || false,
+                            statusMessage: discussion.profiles?.status_message || undefined,
+                            authorAvatarUrl: discussion.profiles?.avatar_url || undefined
+                          }}
+                          onLike={toggleLike}
+                          onAuthorClick={() => navigate(`/profile/${discussion.author_id}`)}
+                          onEdit={editDiscussion}
+                          onDelete={deleteDiscussion}
+                        />
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-12">
+                      <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No discussions found</h3>
+                      <p className="text-gray-500">Try adjusting your search or create the first discussion!</p>
+                    </div>
+                  )
+                ) : (
+                  // Bounty Feed
+                  bountiesLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-500">Loading bounties...</p>
+                    </div>
+                  ) : bounties.length > 0 ? (
+                    bounties.map((bounty) => {
+                      const authorName = bounty.profiles?.full_name || 
+                                       bounty.profiles?.username || 
+                                       'Anonymous User';
+                      const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                      const tags = bounty.bounty_tags.map(tag => tag.tag);
+                      const timeAgo = new Date(bounty.created_at).toLocaleDateString();
+
+                      return (
+                        <BountyCard
+                          key={bounty.id}
+                          bounty={{
+                            id: bounty.id,
+                            title: bounty.title,
+                            description: bounty.description,
+                            price: bounty.price,
+                            currency: bounty.currency,
+                            author: authorName,
+                            authorId: bounty.author_id,
+                            authorInitials,
+                            authorAvatarUrl: bounty.profiles?.avatar_url || undefined,
+                            createdAt: timeAgo,
+                            status: bounty.status,
+                            tags
+                          }}
+                          onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                          onEdit={updateBounty}
+                          onDelete={deleteBounty}
+                        />
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-12">
+                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bounties found</h3>
+                      <p className="text-gray-500">Create the first bounty and start earning!</p>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Chat Head for Desktop */}
+      <FloatingChatHead />
     </div>
   );
 };

@@ -27,8 +27,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Allow access for admin and moderator roles
-    if (userRole !== 'admin' && userRole !== 'moderator') {
+    if (userRole !== 'admin') {
       navigate('/forbidden');
       return;
     }
@@ -89,12 +88,8 @@ const AdminDashboard = () => {
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    {userRole === 'admin' ? 'Admin Dashboard' : 'Moderator Dashboard'}
-                  </h1>
-                  <p className="text-sm text-gray-500 hidden sm:block">
-                    {userRole === 'admin' ? 'Manage users and system settings' : 'Moderate content and users'}
-                  </p>
+                  <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                  <p className="text-sm text-gray-500 hidden sm:block">Manage users and system settings</p>
                 </div>
               </div>
             </div>
@@ -107,9 +102,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="users" className="text-sm">User Management</TabsTrigger>
-            {userRole === 'admin' && (
-              <TabsTrigger value="roles" className="text-sm">Custom Roles</TabsTrigger>
-            )}
+            <TabsTrigger value="roles" className="text-sm">Custom Roles</TabsTrigger>
             <TabsTrigger value="moderation" className="text-sm">Moderation</TabsTrigger>
           </TabsList>
 
@@ -121,14 +114,12 @@ const AdminDashboard = () => {
             />
           </TabsContent>
 
-          {userRole === 'admin' && (
-            <TabsContent value="roles" className="space-y-6">
-              <CustomRolesTab 
-                customRoles={customRoles}
-                onCreateRole={handleCreateRole}
-              />
-            </TabsContent>
-          )}
+          <TabsContent value="roles" className="space-y-6">
+            <CustomRolesTab 
+              customRoles={customRoles}
+              onCreateRole={handleCreateRole}
+            />
+          </TabsContent>
 
           <TabsContent value="moderation" className="space-y-6">
             <ModerationTab 
