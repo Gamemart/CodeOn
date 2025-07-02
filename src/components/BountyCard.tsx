@@ -76,18 +76,25 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
               {isOwner && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400 hover:text-gray-200">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-slate-700/50 rounded-full transition-colors"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
+                  <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                    <DropdownMenuItem 
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="text-gray-200 hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white cursor-pointer"
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-red-600 focus:text-red-600"
+                      className="text-red-400 hover:bg-red-900/20 hover:text-red-300 focus:bg-red-900/20 focus:text-red-300 cursor-pointer"
                     >
                       <Trash className="h-4 w-4 mr-2" />
                       Delete
