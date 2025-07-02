@@ -59,26 +59,26 @@ const AdminDashboard = () => {
   // Show loading while checking auth and role
   if (authLoading || roleLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading admin dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
@@ -88,8 +88,8 @@ const AdminDashboard = () => {
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-                  <p className="text-sm text-gray-500 hidden sm:block">Manage users and system settings</p>
+                  <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
+                  <p className="text-sm text-muted-foreground hidden sm:block">Manage users and system settings</p>
                 </div>
               </div>
             </div>

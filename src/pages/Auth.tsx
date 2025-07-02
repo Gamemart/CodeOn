@@ -208,7 +208,7 @@ const Auth = () => {
       {/* Left side - Background Image */}
       <div className="lg:flex-1 relative overflow-hidden order-2 lg:order-1 min-h-[300px] lg:min-h-screen">
         <div 
-          className="w-full h-full bg-gradient-to-br from-gray-900 to-black"
+          className="w-full h-full bg-gradient-to-br from-gray-900 to-black dark:from-gray-800 dark:to-gray-900"
           style={{
             backgroundImage: `url('/lovable-uploads/f3f9feb6-dc01-4bc1-abca-c5a830e9626f.png')`,
             backgroundSize: 'cover',
@@ -219,17 +219,17 @@ const Auth = () => {
       </div>
 
       {/* Right side - Auth Form */}
-      <div className="flex-1 bg-white flex items-center justify-center p-4 sm:p-6 lg:p-8 order-1 lg:order-2">
+      <div className="flex-1 bg-background text-foreground flex items-center justify-center p-4 sm:p-6 lg:p-8 order-1 lg:order-2">
         <div className="w-full max-w-md space-y-8">
           {/* Brand */}
           <div className="text-center lg:text-left">
-            <div className="bg-gray-900 text-white px-4 py-2 text-sm font-medium rounded-lg inline-block mb-6">
+            <div className="bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded-lg inline-block mb-6">
               UTech Platform
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
               {activeTab === 'signin' ? 'Welcome back' : 'Create account'}
             </h1>
-            <p className="text-gray-600 text-base sm:text-lg">
+            <p className="text-muted-foreground text-base sm:text-lg">
               {activeTab === 'signin' 
                 ? 'Welcome to the Smart Site System for Oil Depots. Sign in to continue.' 
                 : 'Join the Smart Site System for Oil Depots today.'
@@ -238,17 +238,11 @@ const Auth = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100 border border-gray-200">
-              <TabsTrigger 
-                value="signin" 
-                className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">
                 Sign In
               </TabsTrigger>
-              <TabsTrigger 
-                value="signup" 
-                className="text-gray-600 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+              <TabsTrigger value="signup">
                 Sign Up
               </TabsTrigger>
             </TabsList>
@@ -256,7 +250,7 @@ const Auth = () => {
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
+                  <Label htmlFor="email" className="text-foreground font-medium">
                     E-mail
                   </Label>
                   <Input
@@ -265,14 +259,14 @@ const Auth = () => {
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900"
+                    className="h-12"
                     required
                     disabled={loading}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-700 font-medium">
+                  <Label htmlFor="password" className="text-foreground font-medium">
                     Password
                   </Label>
                   <div className="relative">
@@ -282,14 +276,14 @@ const Auth = () => {
                       placeholder="••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900 pr-12"
+                      className="h-12 pr-12"
                       required
                       disabled={loading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -298,7 +292,7 @@ const Auth = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gray-900 text-white hover:bg-gray-800 h-12 font-medium rounded-lg"
+                  className="w-full h-12 font-medium rounded-lg"
                   disabled={loading}
                 >
                   {loading ? "Signing in..." : "Sign In"}
@@ -307,7 +301,7 @@ const Auth = () => {
                 <div className="text-center">
                   <button
                     type="button"
-                    className="text-gray-600 hover:text-gray-900 text-sm underline"
+                    className="text-muted-foreground hover:text-foreground text-sm underline"
                   >
                     Forgot password?
                   </button>
@@ -318,7 +312,7 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-gray-700 font-medium">
+                  <Label htmlFor="fullName" className="text-foreground font-medium">
                     Full Name *
                   </Label>
                   <Input
@@ -326,14 +320,14 @@ const Auth = () => {
                     placeholder="John Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900"
+                    className="h-12"
                     required
                     disabled={loading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-gray-700 font-medium">
+                  <Label htmlFor="username" className="text-foreground font-medium">
                     Username (Optional)
                   </Label>
                   <Input
@@ -341,13 +335,13 @@ const Auth = () => {
                     placeholder="johndoe"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900"
+                    className="h-12"
                     disabled={loading}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-gray-700 font-medium">
+                  <Label htmlFor="signup-email" className="text-foreground font-medium">
                     E-mail *
                   </Label>
                   <Input
@@ -356,14 +350,14 @@ const Auth = () => {
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900"
+                    className="h-12"
                     required
                     disabled={loading}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-gray-700 font-medium">
+                  <Label htmlFor="signup-password" className="text-foreground font-medium">
                     Password *
                   </Label>
                   <div className="relative">
@@ -373,7 +367,7 @@ const Auth = () => {
                       placeholder="••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 h-12 focus:border-gray-900 focus:ring-gray-900 pr-12"
+                      className="h-12 pr-12"
                       required
                       disabled={loading}
                       minLength={6}
@@ -381,29 +375,29 @@ const Auth = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
+                  <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
                 </div>
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gray-900 text-white hover:bg-gray-800 h-12 font-medium rounded-lg"
+                  className="w-full h-12 font-medium rounded-lg"
                   disabled={loading}
                 >
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
 
                 <div className="text-center">
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => setActiveTab('signin')}
-                      className="text-gray-900 hover:underline font-medium"
+                      className="text-foreground hover:underline font-medium"
                       disabled={loading}
                     >
                       Sign in

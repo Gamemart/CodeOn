@@ -101,10 +101,10 @@ const Profile = () => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-6"></div>
-          <p className="text-gray-600 text-lg">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-6"></div>
+          <p className="text-muted-foreground text-lg">Loading profile...</p>
         </div>
       </div>
     );
@@ -112,14 +112,14 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <User className="h-12 w-12 text-gray-400" />
+          <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+            <User className="h-12 w-12 text-muted-foreground" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">User not found</h3>
-          <p className="text-gray-600 mb-6">The profile you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/')} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg">
+          <h3 className="text-2xl font-bold text-foreground mb-3">User not found</h3>
+          <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/')} className="px-6 py-3 rounded-lg">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
@@ -150,14 +150,14 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       {/* Simple Header */}
-      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -168,13 +168,13 @@ const Profile = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Profile Card */}
-        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl overflow-hidden">
+        <Card className="bg-card/90 backdrop-blur-sm border-0 shadow-lg rounded-xl overflow-hidden">
           <CardContent className="p-4 sm:p-6">
             <div className={`flex ${getFlexDirection()} ${alignment === 'center' ? 'gap-6' : 'gap-4'} ${getAlignmentClasses()}`}>
               {/* Avatar - positioned first in center alignment for pyramid structure */}
               {alignment === 'center' && (
                 <div className="flex justify-center mb-4">
-                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg">
+                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profile.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
                       {initials}
@@ -185,7 +185,7 @@ const Profile = () => {
               
               {/* Avatar for left/right alignment */}
               {alignment !== 'center' && (
-                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-4 border-white shadow-lg">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-4 border-background shadow-lg">
                   <AvatarImage src={profile.avatar_url || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
                     {initials}
@@ -197,7 +197,7 @@ const Profile = () => {
               <div className={`flex-1 min-w-0 ${alignment === 'center' ? 'w-full' : ''}`}>
                 {/* Name and Role */}
                 <div className={`flex ${alignment === 'center' ? 'flex-col' : 'flex-row'} ${alignment === 'center' ? 'items-center' : 'items-start'} gap-2 mb-2`}>
-                  <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 ${alignment === 'center' ? 'text-center' : 'truncate'}`}>
+                  <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-foreground ${alignment === 'center' ? 'text-center' : 'truncate'}`}>
                     {displayName}
                   </h1>
                   {userId && (
@@ -209,20 +209,20 @@ const Profile = () => {
                 
                 {/* Username */}
                 {profile.username && (
-                  <p className={`text-gray-500 text-base sm:text-lg mb-2 ${alignment === 'center' ? 'text-center' : ''}`}>
+                  <p className={`text-muted-foreground text-base sm:text-lg mb-2 ${alignment === 'center' ? 'text-center' : ''}`}>
                     @{profile.username}
                   </p>
                 )}
                 
                 {/* Status Message */}
                 {profile.status_message && (
-                  <p className={`text-gray-700 mb-4 text-sm sm:text-base ${alignment === 'center' ? 'text-center max-w-md mx-auto' : ''}`}>
+                  <p className={`text-foreground mb-4 text-sm sm:text-base ${alignment === 'center' ? 'text-center max-w-md mx-auto' : ''}`}>
                     {profile.status_message}
                   </p>
                 )}
                 
                 {/* Stats */}
-                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600 mb-4`}>
+                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground mb-4`}>
                   <span><strong>{followers.length}</strong> Followers</span>
                   <span><strong>{following.length}</strong> Following</span>
                   <span><strong>{discussions.length}</strong> Posts</span>
@@ -268,7 +268,7 @@ const Profile = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => moderateUser(userId!, 'ban')}
-                            className="text-red-600 border-red-200 hover:bg-red-50 p-2"
+                            className="text-destructive border-destructive/20 hover:bg-destructive/10 p-2"
                           >
                             <Ban className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
@@ -276,7 +276,7 @@ const Profile = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => moderateUser(userId!, 'mute')}
-                            className="text-orange-600 border-orange-200 hover:bg-orange-50 p-2"
+                            className="text-orange-600 border-orange-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 p-2"
                           >
                             <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
@@ -292,7 +292,7 @@ const Profile = () => {
 
         {/* Discussions */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">Discussions</h2>
+          <h2 className="text-xl font-semibold text-foreground">Discussions</h2>
           
           {discussions.length > 0 ? (
             discussions.map((discussion) => {
@@ -320,11 +320,11 @@ const Profile = () => {
               );
             })
           ) : (
-            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+            <Card className="bg-card/90 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardContent className="text-center py-12">
-                <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No discussions yet</h3>
-                <p className="text-gray-600">
+                <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">No discussions yet</h3>
+                <p className="text-muted-foreground">
                   {isOwnProfile ? "Start a discussion to see it here!" : "This user hasn't created any discussions yet."}
                 </p>
               </CardContent>
