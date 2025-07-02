@@ -72,10 +72,10 @@ const ChatList = ({ chats, loading, onSelectChat, onNewChat }: ChatListProps) =>
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full bg-white dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">Loading chats...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading chats...</p>
         </div>
       </div>
     );
@@ -83,19 +83,22 @@ const ChatList = ({ chats, loading, onSelectChat, onNewChat }: ChatListProps) =>
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-        <MessageCircle className="h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-sm text-gray-500 mb-2">Please log in to view chats</p>
+      <div className="flex flex-col items-center justify-center h-full p-4 text-center bg-white dark:bg-gray-900">
+        <MessageCircle className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Please log in to view chats</p>
       </div>
     );
   }
 
   if (chats.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-        <MessageCircle className="h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-sm text-gray-500 mb-4">No chats yet</p>
-        <Button onClick={onNewChat} className="flex items-center gap-2">
+      <div className="flex flex-col items-center justify-center h-full p-4 text-center bg-white dark:bg-gray-900">
+        <MessageCircle className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">No chats yet</p>
+        <Button 
+          onClick={onNewChat} 
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+        >
           <Plus className="h-4 w-4" />
           Start a conversation
         </Button>
@@ -104,27 +107,27 @@ const ChatList = ({ chats, loading, onSelectChat, onNewChat }: ChatListProps) =>
   }
 
   return (
-    <div className="overflow-y-auto h-full">
+    <div className="overflow-y-auto h-full bg-white dark:bg-gray-900">
       {chats.map((chat) => (
         <div
           key={chat.id}
           onClick={() => onSelectChat(chat.id)}
-          className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+          className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors"
         >
           <Avatar className="h-10 w-10">
             <AvatarImage src={getChatAvatar(chat) || undefined} />
-            <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+            <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-sm">
               {getChatInitials(chat)}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                 {getChatName(chat)}
               </p>
               {chat.last_message && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {new Date(chat.last_message.created_at).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -132,7 +135,7 @@ const ChatList = ({ chats, loading, onSelectChat, onNewChat }: ChatListProps) =>
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {formatLastMessage(chat.last_message)}
             </p>
           </div>

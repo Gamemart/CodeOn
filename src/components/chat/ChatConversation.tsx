@@ -69,7 +69,7 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
         {!isOwnMessage && (
           <Avatar className="h-6 w-6 mt-1">
             <AvatarImage src={message.profiles?.avatar_url || undefined} />
-            <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+            <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs">
               {senderInitials}
             </AvatarFallback>
           </Avatar>
@@ -79,7 +79,7 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
           <div className={`rounded-lg px-3 py-2 ${
             isOwnMessage 
               ? 'bg-blue-600 text-white' 
-              : 'bg-gray-100 text-gray-900'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
           }`}>
             {message.message_type === 'text' ? (
               <p className="text-sm">{message.content}</p>
@@ -99,7 +99,7 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
               </div>
             )}
           </div>
-          <span className="text-xs text-gray-500 mt-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {formatTime(message.created_at)}
           </span>
         </div>
@@ -108,16 +108,16 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-900">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-white dark:bg-gray-900">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-sm text-gray-500">No messages yet. Start the conversation!</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
           </div>
         ) : (
           messages.map(renderMessage)
@@ -126,14 +126,14 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
       </div>
 
       {/* Message Input */}
-      <form onSubmit={handleSendMessage} className="p-3 border-t">
+      <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -142,10 +142,14 @@ const ChatConversation = ({ chatId, onBack }: ChatConversationProps) => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 h-8 text-sm"
+            className="flex-1 h-8 text-sm bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
           />
           
-          <Button type="submit" size="sm" className="h-8 w-8 p-0">
+          <Button 
+            type="submit" 
+            size="sm" 
+            className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

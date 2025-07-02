@@ -104,7 +104,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
               variant="ghost"
               size="sm"
               onClick={getBackAction()}
-              className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               {selectedChatId || showUserList || showSearchResults ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
             </Button>
@@ -113,7 +113,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
 
         {/* Search Bar */}
         {!selectedChatId && (
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
@@ -134,7 +134,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
               onBack={handleBackToList}
             />
           ) : showSearchResults ? (
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
               {userSearchResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                   <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
@@ -185,7 +185,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
 
   return (
     <Card className="w-80 h-96 bg-white dark:bg-gray-900 shadow-xl border-gray-200 dark:border-gray-700">
-      <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-gray-200 dark:border-gray-700">
+      <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {getTitle()}
         </CardTitle>
@@ -194,7 +194,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
             variant="ghost"
             size="sm"
             onClick={getBackAction()}
-            className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             {selectedChatId || showUserList || showSearchResults ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
@@ -203,7 +203,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
       <CardContent className="p-0 h-80 overflow-hidden bg-white dark:bg-gray-900">
         {/* Search Bar for Desktop */}
         {!selectedChatId && (
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
@@ -217,14 +217,14 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
         )}
 
         {/* Desktop Content */}
-        <div className="h-full overflow-hidden">
+        <div className="h-full overflow-hidden bg-white dark:bg-gray-900">
           {selectedChatId ? (
             <ChatConversation
               chatId={selectedChatId}
               onBack={handleBackToList}
             />
           ) : showSearchResults ? (
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
               {userSearchResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                   <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
