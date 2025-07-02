@@ -175,7 +175,7 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
           const authorInitials = authorName.split(' ').map(n => n[0]).join('').toUpperCase();
 
           return (
-            <Card key={reply.id} className="bg-gray-50/50">
+            <Card key={reply.id} className="bg-card/50 border-border">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-8 w-8">
@@ -185,14 +185,14 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                      <span className="font-medium text-gray-700">{authorName}</span>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      <span className="font-medium text-foreground">{authorName}</span>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         <span>{formatTimeAgo(reply.created_at)}</span>
                       </div>
                     </div>
-                    <p className="text-gray-700 leading-relaxed">{reply.content}</p>
+                    <p className="text-foreground leading-relaxed">{reply.content}</p>
                   </div>
                 </div>
               </CardContent>
@@ -206,7 +206,7 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
             <Button
               variant="ghost"
               onClick={() => setShowAllReplies(!showAllReplies)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              className="flex items-center gap-2 text-primary hover:text-primary/80"
             >
               {showAllReplies ? (
                 <>
@@ -225,11 +225,11 @@ const ReplySection = ({ discussionId, onClose }: ReplySectionProps) => {
 
         {/* Close Replies Button */}
         {onClose && (
-          <div className="flex justify-center pt-4 border-t border-gray-100">
+          <div className="flex justify-center pt-4 border-t border-border">
             <Button
               variant="outline"
               onClick={onClose}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-700"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
               Close Replies
