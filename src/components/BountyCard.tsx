@@ -53,16 +53,16 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
 
   return (
     <>
-      <Card className="bg-slate-800 text-white border-slate-700 rounded-xl overflow-hidden mb-4 w-full">
+      <Card className="bg-slate-800 dark:bg-gray-800 text-white border-slate-700 dark:border-gray-700 rounded-xl overflow-hidden mb-4 w-full">
         <CardContent className="p-4 sm:p-6">
           {/* Header with price, status, and actions */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-2xl sm:text-3xl font-bold">
+              <span className="text-2xl sm:text-3xl font-bold text-white">
                 ${bounty.price}
               </span>
               {bounty.currency !== 'USD' && (
-                <span className="text-sm text-gray-400 uppercase">
+                <span className="text-sm text-gray-400 dark:text-gray-300 uppercase">
                   {bounty.currency}
                 </span>
               )}
@@ -79,15 +79,15 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-slate-700/50 rounded-full transition-colors"
+                      className="h-8 w-8 p-0 text-gray-400 dark:text-gray-300 hover:text-gray-200 hover:bg-slate-700/50 dark:hover:bg-gray-700/50 rounded-full transition-colors"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                  <DropdownMenuContent align="end" className="bg-slate-800 dark:bg-gray-800 border-slate-700 dark:border-gray-700">
                     <DropdownMenuItem 
                       onClick={() => setIsEditModalOpen(true)}
-                      className="text-gray-200 hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white cursor-pointer"
+                      className="text-gray-200 dark:text-gray-100 hover:bg-slate-700 dark:hover:bg-gray-700 hover:text-white focus:bg-slate-700 dark:focus:bg-gray-700 focus:text-white cursor-pointer"
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
@@ -111,7 +111,7 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
           </h3>
 
           {/* Description */}
-          <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4 line-clamp-3">
+          <p className="text-gray-300 dark:text-gray-200 text-sm sm:text-base leading-relaxed mb-4 line-clamp-3">
             {bounty.description}
           </p>
 
@@ -121,7 +121,7 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
               {bounty.tags.map((tag, index) => (
                 <span 
                   key={index}
-                  className="text-blue-400 text-xs sm:text-sm hover:underline cursor-pointer bg-blue-900/20 px-2 py-1 rounded-full border border-blue-800"
+                  className="text-blue-400 dark:text-blue-300 text-xs sm:text-sm hover:underline cursor-pointer bg-blue-900/20 dark:bg-blue-900/30 px-2 py-1 rounded-full border border-blue-800 dark:border-blue-700"
                 >
                   #{tag}
                 </span>
@@ -140,12 +140,12 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
               </Avatar>
               <div className="flex flex-col">
                 <span 
-                  className="font-medium text-white cursor-pointer hover:text-blue-400 text-sm sm:text-base"
+                  className="font-medium text-white cursor-pointer hover:text-blue-400 dark:hover:text-blue-300 text-sm sm:text-base"
                   onClick={onAuthorClick}
                 >
                   {bounty.author}
                 </span>
-                <span className="text-gray-400 text-xs sm:text-sm">
+                <span className="text-gray-400 dark:text-gray-300 text-xs sm:text-sm">
                   {bounty.createdAt}
                 </span>
               </div>
@@ -164,16 +164,16 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
       )}
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Bounty</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-gray-900 dark:text-gray-100">Delete Bounty</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
               Are you sure you want to delete this bounty? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

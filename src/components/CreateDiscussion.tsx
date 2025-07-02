@@ -136,7 +136,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden">
+    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 dark:border-gray-700 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden">
       <CardContent className="p-3 sm:p-6">
         <div className="flex items-start gap-2 sm:gap-4">
           <Avatar className="h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0">
@@ -153,7 +153,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                   className="cursor-text"
                   onClick={() => setIsExpanded(true)}
                 >
-                  <div className="bg-gray-50/50 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-gray-500 hover:bg-gray-100/50 transition-colors text-sm sm:text-base">
+                  <div className="bg-gray-50/50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-600/50 transition-colors text-sm sm:text-base">
                     What's on your mind right now?
                   </div>
                 </div>
@@ -163,7 +163,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     placeholder="Share your thoughts..."
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
-                    className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
+                    className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent dark:bg-transparent text-base sm:text-lg placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0 text-gray-900 dark:text-gray-100"
                     autoFocus
                   />
 
@@ -201,7 +201,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                       {tags.map((tag) => (
                         <span 
                           key={tag} 
-                          className="bg-blue-50 text-blue-700 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm cursor-pointer hover:bg-blue-100 flex items-center"
+                          className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 flex items-center"
                           onClick={() => handleRemoveTag(tag)}
                         >
                           #{tag}
@@ -211,9 +211,9 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                     </div>
                   )}
                   
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 gap-3 sm:gap-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700 gap-3 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-4">
-                      <Button type="button" variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
+                      <Button type="button" variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2">
                         <Smile className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
                       <input
@@ -229,7 +229,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                         variant="ghost" 
                         size="sm" 
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-gray-500 hover:text-blue-600 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2"
+                        className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 h-8 w-8 sm:h-auto sm:w-auto p-1 sm:p-2"
                         disabled={selectedImages.length >= 10}
                       >
                         <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -240,7 +240,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                          className="text-xs sm:text-sm border-0 bg-gray-50 focus:bg-gray-100 transition-colors w-full sm:w-32 h-8 sm:h-9"
+                          className="text-xs sm:text-sm border-0 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:bg-gray-100 dark:focus:bg-gray-600 transition-colors w-full sm:w-32 h-8 sm:h-9"
                         />
                       </div>
                     </div>
@@ -251,7 +251,7 @@ const CreateDiscussion = ({ onSubmit }: CreateDiscussionProps) => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => setIsExpanded(false)}
-                        className="text-gray-500 text-sm sm:text-base px-3 sm:px-4"
+                        className="text-gray-500 dark:text-gray-400 text-sm sm:text-base px-3 sm:px-4 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         Cancel
                       </Button>

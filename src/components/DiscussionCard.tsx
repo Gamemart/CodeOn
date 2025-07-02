@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -109,7 +110,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 w-full">
+    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 dark:border-gray-700 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 w-full">
       <CardContent className="p-3 sm:p-4 lg:p-6">
         {/* Header with author info */}
         <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -123,7 +124,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                 <span 
-                  className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600 text-sm sm:text-base lg:text-lg truncate" 
+                  className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 text-sm sm:text-base lg:text-lg truncate" 
                   onClick={onAuthorClick}
                 >
                   {discussion.author}
@@ -133,10 +134,10 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                     <CustomRoleBadge userId={discussion.authorId} />
                   </div>
                 )}
-                <span className="text-gray-500 text-xs sm:text-sm whitespace-nowrap">• {discussion.createdAt}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm whitespace-nowrap">• {discussion.createdAt}</span>
               </div>
               {discussion.statusMessage && (
-                <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate">"{discussion.statusMessage}"</p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-0.5 sm:mt-1 truncate">"{discussion.statusMessage}"</p>
               )}
             </div>
           </div>
@@ -145,20 +146,20 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
           {!isEditing && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 hover:text-gray-600 flex-shrink-0">
+                <Button variant="ghost" size="sm" className="h-6 w-6 sm:h-8 sm:w-8 p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
                   <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 {isAuthor && (
                   <>
-                    <DropdownMenuItem onClick={handleEdit}>
+                    <DropdownMenuItem onClick={handleEdit} className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setIsDeleteDialogOpen(true)}
-                      className="text-red-600 focus:text-red-600"
+                      className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
@@ -184,7 +185,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 onClick={handleCancelEdit}
                 variant="outline"
                 size="sm"
-                className="h-6 w-6 sm:h-8 sm:w-8 p-0"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 border-gray-300 dark:border-gray-600"
               >
                 <X className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -201,7 +202,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 value={editBody}
                 onChange={(e) => setEditBody(e.target.value)}
                 placeholder="Edit your thoughts..."
-                className="text-sm sm:text-base lg:text-lg min-h-[80px] resize-none"
+                className="text-sm sm:text-base lg:text-lg min-h-[80px] resize-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
               />
               
               {/* Tags Edit */}
@@ -209,13 +210,13 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 value={editTags}
                 onChange={(e) => setEditTags(e.target.value)}
                 placeholder="Edit tags (comma separated)..."
-                className="text-xs sm:text-sm"
+                className="text-xs sm:text-sm bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
               />
             </div>
           ) : (
             <div>
               {/* Display Body */}
-              <p className="text-gray-800 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
+              <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap text-sm sm:text-base lg:text-lg">
                 {cleanBody}
               </p>
               
@@ -232,7 +233,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                       <img 
                         src={url} 
                         alt={`Discussion image ${index + 1}`} 
-                        className="w-full max-h-96 object-contain rounded-lg bg-gray-50"
+                        className="w-full max-h-96 object-contain rounded-lg bg-gray-50 dark:bg-gray-700"
                         onError={(e) => {
                           console.error('Failed to load image:', url);
                           e.currentTarget.style.display = 'none';
@@ -252,7 +253,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
             {discussion.tags.map((tag, index) => (
               <span 
                 key={index} 
-                className="text-blue-600 text-xs sm:text-sm lg:text-base hover:underline cursor-pointer bg-blue-50 px-2 py-1 rounded-full"
+                className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm lg:text-base hover:underline cursor-pointer bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-full"
               >
                 #{tag}
               </span>
@@ -262,12 +263,12 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
         
         {/* Actions Row */}
         {!isEditing && (
-          <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
               <button
                 onClick={() => onLike(discussion.id)}
                 className={`flex items-center gap-1 sm:gap-2 hover:text-red-500 transition-colors text-xs sm:text-sm lg:text-base ${
-                  discussion.isLiked ? 'text-red-500' : 'text-gray-500'
+                  discussion.isLiked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 <Heart className={`h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 ${discussion.isLiked ? 'fill-current' : ''}`} />
@@ -276,7 +277,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
               
               <button
                 onClick={handleShowReplies}
-                className="flex items-center gap-1 sm:gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm lg:text-base text-gray-500"
+                className="flex items-center gap-1 sm:gap-2 hover:text-blue-500 transition-colors text-xs sm:text-sm lg:text-base text-gray-500 dark:text-gray-400"
               >
                 <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                 <span className="font-medium">{discussion.repliesCount}</span>
@@ -288,7 +289,7 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
         {/* Reply Section */}
         {showReplies && !isEditing && (
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
             <ReplySection discussionId={discussion.id} onClose={handleCloseReplies} />
           </div>
         )}
@@ -296,16 +297,16 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="w-[90vw] max-w-md mx-auto">
+        <AlertDialogContent className="w-[90vw] max-w-md mx-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Delete Discussion</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm sm:text-base">
+            <AlertDialogTitle className="text-base sm:text-lg text-gray-900 dark:text-gray-100">Delete Discussion</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
               Are you sure you want to delete this discussion? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-            <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="w-full sm:w-auto bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="w-full sm:w-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

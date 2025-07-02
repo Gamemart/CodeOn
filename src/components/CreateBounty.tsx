@@ -103,7 +103,7 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden">
+    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 dark:border-gray-700 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden">
       <CardContent className="p-3 sm:p-6">
         <div className="flex items-start gap-2 sm:gap-4">
           <Avatar className="h-8 w-8 sm:h-12 sm:w-12 flex-shrink-0">
@@ -121,7 +121,7 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                     className="flex-1 cursor-text"
                     onClick={() => setIsExpanded(true)}
                   >
-                    <div className="bg-gray-50/50 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-gray-500 hover:bg-gray-100/50 transition-colors text-sm sm:text-base">
+                    <div className="bg-gray-50/50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-600/50 transition-colors text-sm sm:text-base">
                       What do you need help with?
                     </div>
                   </div>
@@ -140,37 +140,37 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                       placeholder="What do you need help with?"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="text-base sm:text-lg font-medium border-0 bg-transparent placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
+                      className="text-base sm:text-lg font-medium border-0 bg-transparent dark:bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0 text-gray-900 dark:text-gray-100"
                       required
                     />
                   </div>
 
                   {/* Price and Currency */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Reward Amount</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Reward Amount</label>
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
                         <Input
                           type="number"
                           placeholder="0.00"
                           value={price}
                           onChange={(e) => setPrice(e.target.value)}
-                          className="pl-8 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                          className="pl-8 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-green-500 focus:ring-green-500"
                           min="0"
                           step="0.01"
                           required
                         />
                       </div>
                       <Select value={currency} onValueChange={setCurrency}>
-                        <SelectTrigger className="w-20 sm:w-24 border-gray-300 focus:border-green-500 focus:ring-green-500">
+                        <SelectTrigger className="w-20 sm:w-24 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-green-500 focus:ring-green-500">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="CAD">CAD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectContent className="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                          <SelectItem value="USD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">USD</SelectItem>
+                          <SelectItem value="CAD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CAD</SelectItem>
+                          <SelectItem value="EUR" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">EUR</SelectItem>
+                          <SelectItem value="GBP" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">GBP</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -182,7 +182,7 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                       placeholder="Describe your problem in detail..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent text-base sm:text-lg placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0"
+                      className="min-h-[120px] sm:min-h-[140px] resize-none border-0 bg-transparent dark:bg-transparent text-base sm:text-lg placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-sm sm:placeholder:text-base focus:ring-0 focus:outline-none p-0 text-gray-900 dark:text-gray-100"
                       required
                     />
                   </div>
@@ -193,12 +193,12 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                       placeholder="Add tags (comma separated)..."
                       value={tags}
                       onChange={(e) => setTags(e.target.value)}
-                      className="text-xs sm:text-sm border-0 bg-gray-50 focus:bg-gray-100 transition-colors"
+                      className="text-xs sm:text-sm border-0 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:bg-gray-100 dark:focus:bg-gray-600 transition-colors"
                     />
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 gap-3 sm:gap-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700 gap-3 sm:gap-0">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                     </div>
@@ -210,7 +210,7 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                         size="sm"
                         onClick={handleCancel}
                         disabled={isSubmitting}
-                        className="text-gray-500 text-sm sm:text-base px-3 sm:px-4"
+                        className="text-gray-500 dark:text-gray-400 text-sm sm:text-base px-3 sm:px-4 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         Cancel
                       </Button>
