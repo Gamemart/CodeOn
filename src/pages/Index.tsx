@@ -89,6 +89,15 @@ const Index = () => {
 
   // Mobile Layout
   if (isMobile) {
+    // Full screen chat view
+    if (showMobileChat) {
+      return (
+        <div className="h-screen bg-white">
+          <ChatWindow onClose={() => setShowMobileChat(false)} isMobile={true} />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 pb-20">
         {/* Mobile Header */}
@@ -334,15 +343,6 @@ const Index = () => {
             </button>
           </div>
         </div>
-
-        {/* Mobile Chat Window */}
-        {showMobileChat && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm h-96">
-              <ChatWindow onClose={() => setShowMobileChat(false)} />
-            </div>
-          </div>
-        )}
       </div>
     );
   }

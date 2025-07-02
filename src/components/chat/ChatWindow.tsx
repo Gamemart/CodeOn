@@ -10,9 +10,10 @@ import UserList from './UserList';
 
 interface ChatWindowProps {
   onClose: () => void;
+  isMobile?: boolean;
 }
 
-const ChatWindow = ({ onClose }: ChatWindowProps) => {
+const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
   const { chats, loading, createDirectChat } = useChats();
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [showUserList, setShowUserList] = useState(false);
@@ -57,6 +58,62 @@ const ChatWindow = ({ onClose }: ChatWindowProps) => {
     if (showUserList) return handleBackToList;
     return onClose;
   };
+
+  if (isMobile) {
+    return (
+      <div className="h-full flex flex-col bg-white">
+        {/* Mobile Header */}
+        <div className="flex items-center justify-between py-3 px-4 border-b bg-white">
+          <h1 className="text-lg font-semibold">
+            {getTitle()}
+          </h1>
+          <div className="flex items-center gap-2">
+            {!selectedChatId && !showUserList && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewChat}
+                className="h-8 px-2 text-blue-600 hover:text-blue-700"
+                disabled={loading}
+              >
+                New
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={getBackAction()}
+              className="h-8 w-8 p-0"
+            >
+              {selectedChatId || showUserList ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Mobile Content */}
+        <div className="flex-1 overflow-hidden">
+          {selectedChatId ? (
+            <ChatConversation
+              chatId={selectedChatId}
+              onBack={handleBackToList}
+            />
+          ) : showUserList ? (
+            <UserList
+              onSelectUser={handleSelectUser}
+              onBack={handleBackToList}
+            />
+          ) : (
+            <ChatList
+              chats={chats}
+              loading={loading}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card className="w-80 h-96 bg-white shadow-xl">
