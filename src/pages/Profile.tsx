@@ -173,9 +173,9 @@ const Profile = () => {
           <ProfileBanner 
             bannerType={profile.banner_type}
             bannerValue={profile.banner_value}
-            className="absolute inset-0 opacity-20"
+            className={`absolute inset-0 ${profile.banner_type === 'image' ? 'opacity-40' : 'opacity-20'}`}
           />
-          <div className="absolute inset-0 bg-card/90 backdrop-blur-sm"></div>
+          <div className={`absolute inset-0 ${profile.banner_type === 'image' ? 'bg-card/80 backdrop-blur-md' : 'bg-card/90 backdrop-blur-sm'}`}></div>
           <CardContent className="relative z-10 p-4 sm:p-6">
             <div className={`flex ${getFlexDirection()} ${alignment === 'center' ? 'gap-6' : 'gap-4'} ${getAlignmentClasses()}`}>
               {/* Avatar - positioned first in center alignment for pyramid structure */}
