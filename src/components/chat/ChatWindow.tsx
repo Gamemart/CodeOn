@@ -93,10 +93,10 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
 
   if (isMobile) {
     return (
-      <div className="h-full flex flex-col bg-white">
+      <div className="h-full flex flex-col bg-white dark:bg-gray-900">
         {/* Mobile Header */}
-        <div className="flex items-center justify-between py-3 px-4 border-b bg-white">
-          <h1 className="text-lg font-semibold">
+        <div className="flex items-center justify-between py-3 px-4 border-b bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {getTitle()}
           </h1>
           <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
               variant="ghost"
               size="sm"
               onClick={getBackAction()}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
             >
               {selectedChatId || showUserList || showSearchResults ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
             </Button>
@@ -113,21 +113,21 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
 
         {/* Search Bar */}
         {!selectedChatId && (
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Search users to message..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 bg-gray-50/50 border-gray-200/50"
+                className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
         )}
         
         {/* Mobile Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900">
           {selectedChatId ? (
             <ChatConversation
               chatId={selectedChatId}
@@ -137,8 +137,8 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
             <div className="h-full overflow-y-auto">
               {userSearchResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                  <Search className="h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-500">No users found</p>
+                  <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No users found</p>
                 </div>
               ) : (
                 <div className="p-2">
@@ -146,18 +146,18 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
                     <div
                       key={user.id}
                       onClick={() => handleSelectSearchUser(user.id)}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                     >
-                      <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-medium">
                         {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase() || '?'}
                       </div>
                       
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
                           {user.fullName || user.username || 'Unknown User'}
                         </p>
                         {user.username && (
-                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</p>
                         )}
                       </div>
                     </div>
@@ -184,9 +184,9 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
   }
 
   return (
-    <Card className="w-80 h-96 bg-white shadow-xl">
-      <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b">
-        <CardTitle className="text-lg font-semibold">
+    <Card className="w-80 h-96 bg-white dark:bg-gray-900 shadow-xl border-gray-200 dark:border-gray-700">
+      <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b border-gray-200 dark:border-gray-700">
+        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {getTitle()}
         </CardTitle>
         <div className="flex items-center gap-2">
@@ -194,23 +194,23 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
             variant="ghost"
             size="sm"
             onClick={getBackAction()}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             {selectedChatId || showUserList || showSearchResults ? <ArrowLeft className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0 h-80 overflow-hidden">
+      <CardContent className="p-0 h-80 overflow-hidden bg-white dark:bg-gray-900">
         {/* Search Bar for Desktop */}
         {!selectedChatId && (
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Search users to message..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 bg-gray-50/50 border-gray-200/50"
+                className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -227,8 +227,8 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
             <div className="h-full overflow-y-auto">
               {userSearchResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                  <Search className="h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-500">No users found</p>
+                  <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No users found</p>
                 </div>
               ) : (
                 <div className="p-2">
@@ -236,18 +236,18 @@ const ChatWindow = ({ onClose, isMobile = false }: ChatWindowProps) => {
                     <div
                       key={user.id}
                       onClick={() => handleSelectSearchUser(user.id)}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                     >
-                      <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-medium">
                         {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase() || '?'}
                       </div>
                       
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
                           {user.fullName || user.username || 'Unknown User'}
                         </p>
                         {user.username && (
-                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</p>
                         )}
                       </div>
                     </div>
