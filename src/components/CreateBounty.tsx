@@ -104,27 +104,26 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
 
   if (!isExpanded) {
     return (
-      <Card className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl rounded-2xl overflow-hidden mb-6 w-full hover:shadow-2xl transition-all duration-300">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-blue-100">
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
             <button
               onClick={() => setIsExpanded(true)}
-              className="flex-1 text-left bg-gray-50 hover:bg-gray-100 transition-all duration-200 rounded-xl px-5 py-4 text-gray-500 font-medium border border-gray-200/50 hover:border-gray-300"
+              className="flex-1 text-left bg-gray-50 hover:bg-gray-100 transition-colors rounded-full px-4 py-3 text-gray-500 border border-gray-200"
             >
               What do you need help with?
             </button>
             <Button
-              size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
               onClick={() => setIsExpanded(true)}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full"
             >
-              <DollarSign className="h-5 w-5 mr-2" />
+              <DollarSign className="h-4 w-4 mr-2" />
               Create Bounty
             </Button>
           </div>
@@ -134,54 +133,53 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
   }
 
   return (
-    <Card className="bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl rounded-2xl overflow-hidden mb-6 w-full">
-      <CardContent className="p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <Card className="mb-6">
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-blue-100">
+          <div className="flex items-center gap-3 mb-4">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-900 text-xl">Create a Bounty</h3>
-              <p className="text-gray-500">Offer a reward for help with your problem</p>
+            <div>
+              <h3 className="font-semibold text-gray-900">Create a Bounty</h3>
+              <p className="text-sm text-gray-500">Offer a reward for help with your problem</p>
             </div>
           </div>
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">What do you need help with?</label>
             <Input
-              placeholder="Describe your problem briefly..."
+              placeholder="What do you need help with?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-lg font-medium border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl py-3 px-4"
+              className="text-lg font-medium border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               required
             />
           </div>
 
           {/* Price and Currency */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Reward Amount</label>
-            <div className="flex gap-3">
+            <label className="text-sm font-medium text-gray-700">Reward Amount</label>
+            <div className="flex gap-2">
               <div className="flex-1 relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                 <Input
                   type="number"
                   placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="pl-8 text-lg font-semibold border-gray-200 focus:border-green-400 focus:ring-green-400 rounded-xl py-3"
+                  className="pl-8 border-gray-300 focus:border-green-500 focus:ring-green-500"
                   min="0"
                   step="0.01"
                   required
                 />
               </div>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="w-32 border-gray-200 focus:border-green-400 focus:ring-green-400 rounded-xl py-3">
+                <SelectTrigger className="w-24 border-gray-300 focus:border-green-500 focus:ring-green-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,41 +194,39 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Description</label>
             <Textarea
               placeholder="Describe your problem in detail..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="text-base min-h-32 resize-none border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl p-4"
+              className="min-h-24 resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               required
             />
           </div>
 
           {/* Tags */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Tags</label>
             <Input
               placeholder="Add tags (comma separated)..."
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="border-gray-200 focus:border-blue-400 focus:ring-blue-400 rounded-xl py-3 px-4"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
-              className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl py-3 font-semibold"
+              className="flex-1"
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
               disabled={isSubmitting || !title.trim() || !description.trim() || !price.trim()}
             >
               {isSubmitting ? 'Posting...' : 'Post Bounty'}
