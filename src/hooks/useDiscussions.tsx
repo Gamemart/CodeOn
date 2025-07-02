@@ -362,8 +362,8 @@ export const useDiscussions = () => {
   useEffect(() => {
     fetchDiscussions();
 
-    // Set up real-time subscription
-    const channel = supabase
+    // Set up real-time subscription for discussions and replies
+    const discussionsChannel = supabase
       .channel('discussions-changes')
       .on(
         'postgres_changes',
@@ -376,10 +376,21 @@ export const useDiscussions = () => {
           fetchDiscussions();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'replies'
+        },
+        () => {
+          fetchDiscussions();
+        }
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(discussionsChannel);
     };
   }, [fetchDiscussions]);
 

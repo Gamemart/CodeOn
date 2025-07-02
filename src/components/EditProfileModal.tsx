@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Palette, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import AvatarCropper from '@/components/AvatarCropper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,8 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -66,11 +69,16 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setAvatarPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+      setSelectedAvatarFile(file);
+      setShowCropper(true);
     }
+  };
+
+  const handleCropComplete = (croppedFile: File) => {
+    setAvatarFile(croppedFile);
+    const reader = new FileReader();
+    reader.onload = (e) => setAvatarPreview(e.target?.result as string);
+    reader.readAsDataURL(croppedFile);
   };
 
   const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -380,6 +388,14 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
           </div>
         </div>
       </DialogContent>
+
+      {/* Avatar Cropper */}
+      <AvatarCropper
+        isOpen={showCropper}
+        onClose={() => setShowCropper(false)}
+        imageFile={selectedAvatarFile}
+        onCropComplete={handleCropComplete}
+      />
     </Dialog>
   );
 };
