@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,7 +42,7 @@ export const useBounties = () => {
             id,
             tag
           ),
-          profiles (
+          profiles!author_id (
             full_name,
             username,
             avatar_url
