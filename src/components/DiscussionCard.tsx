@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Check, X, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ReplySection from '@/components/ReplySection';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 interface Discussion {
   id: string;
@@ -38,6 +40,8 @@ interface DiscussionCardProps {
 
 const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }: DiscussionCardProps) => {
   const { user } = useAuth();
+  const { userRole } = useUserRoles();
+  const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState(discussion.body);
@@ -45,6 +49,8 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
   const [showReplies, setShowReplies] = useState(false);
   
   const isAuthor = user?.id === discussion.authorId;
+  const canModerate = userRole === 'admin' || userRole === 'moderator';
+  const isOtherUser = discussion.authorId && discussion.authorId !== user?.id;
 
   // Extract image URLs from body content - improved regex to handle Supabase URLs
   const extractImageUrls = (content: string): string[] => {
@@ -108,6 +114,13 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
     setShowReplies(false);
   };
 
+  const handleMessageUser = () => {
+    if (discussion.authorId) {
+      // Navigate to chat with the user
+      navigate(`/chat/${discussion.authorId}`);
+    }
+  };
+
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 w-full">
       <CardContent className="p-3 sm:p-4 lg:p-6">
@@ -149,7 +162,13 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                   <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg rounded-lg z-50">
+                {isOtherUser && (
+                  <DropdownMenuItem onClick={handleMessageUser}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Message
+                  </DropdownMenuItem>
+                )}
                 {isAuthor && (
                   <>
                     <DropdownMenuItem onClick={handleEdit}>
@@ -164,6 +183,15 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                       Delete
                     </DropdownMenuItem>
                   </>
+                )}
+                {canModerate && !isAuthor && (
+                  <DropdownMenuItem 
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete (Mod)
+                  </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
