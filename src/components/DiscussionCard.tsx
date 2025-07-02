@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -282,10 +282,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 <span className="font-medium">{discussion.repliesCount}</span>
               </button>
 
-              <button className="flex items-center gap-1 sm:gap-2 hover:text-gray-700 transition-colors text-xs sm:text-sm lg:text-base text-gray-500">
-                <Share className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                <span className="hidden sm:inline font-medium">Share</span>
-              </button>
             </div>
           </div>
         )}
