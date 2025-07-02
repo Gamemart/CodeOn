@@ -25,7 +25,7 @@ import ChatWindow from '@/components/chat/ChatWindow';
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
-  const { bounties, loading: bountiesLoading, createBounty } = useBounties();
+  const { bounties, loading: bountiesLoading, createBounty, updateBounty, deleteBounty } = useBounties();
   const { userRole } = useUserRoles();
   const { profile } = useProfile();
   const [searchQuery, setSearchQuery] = useState('');
@@ -283,6 +283,8 @@ const Index = () => {
                           tags
                         }}
                         onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                        onEdit={updateBounty}
+                        onDelete={deleteBounty}
                       />
                     );
                   })
@@ -595,6 +597,8 @@ const Index = () => {
                             tags
                           }}
                           onAuthorClick={() => navigate(`/profile/${bounty.author_id}`)}
+                          onEdit={updateBounty}
+                          onDelete={deleteBounty}
                         />
                       );
                     })

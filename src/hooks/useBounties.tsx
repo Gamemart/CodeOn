@@ -126,6 +126,114 @@ export const useBounties = () => {
     }
   };
 
+  const updateBounty = async (bountyId: string, updates: {
+    title?: string;
+    description?: string;
+    price?: number;
+    currency?: string;
+    tags?: string[];
+    status?: string;
+  }) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to update a bounty.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error: bountyError } = await supabase
+        .from('bounties')
+        .update({
+          title: updates.title,
+          description: updates.description,
+          price: updates.price,
+          currency: updates.currency,
+          status: updates.status
+        })
+        .eq('id', bountyId)
+        .eq('author_id', user.id);
+
+      if (bountyError) throw bountyError;
+
+      // Update tags if provided
+      if (updates.tags !== undefined) {
+        // Delete existing tags
+        await supabase
+          .from('bounty_tags')
+          .delete()
+          .eq('bounty_id', bountyId);
+
+        // Insert new tags if any
+        if (updates.tags.length > 0) {
+          const tagInserts = updates.tags.map(tag => ({
+            bounty_id: bountyId,
+            tag: tag
+          }));
+
+          const { error: tagsError } = await supabase
+            .from('bounty_tags')
+            .insert(tagInserts);
+
+          if (tagsError) throw tagsError;
+        }
+      }
+
+      toast({
+        title: "Bounty updated",
+        description: "Your bounty has been updated successfully."
+      });
+
+      // Refresh bounties to show the updated one
+      await fetchBounties();
+    } catch (error) {
+      console.error('Error updating bounty:', error);
+      toast({
+        title: "Error updating bounty",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteBounty = async (bountyId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to delete a bounty.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bounties')
+        .delete()
+        .eq('id', bountyId)
+        .eq('author_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Bounty deleted",
+        description: "Your bounty has been deleted successfully."
+      });
+
+      // Refresh bounties to remove the deleted one
+      await fetchBounties();
+    } catch (error) {
+      console.error('Error deleting bounty:', error);
+      toast({
+        title: "Error deleting bounty",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     fetchBounties();
 
@@ -165,6 +273,8 @@ export const useBounties = () => {
     bounties,
     loading,
     createBounty,
+    updateBounty,
+    deleteBounty,
     refetch: fetchBounties
   };
 };
