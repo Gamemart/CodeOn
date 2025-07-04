@@ -460,7 +460,6 @@ const Index = () => {
                   {!sidebarCollapsed && (
                     <div className="ml-3 text-left">
                       <p className="text-sm font-medium text-foreground">{userDisplayName}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   )}
                 </Button>
