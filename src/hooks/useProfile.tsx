@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,7 @@ interface Profile {
   banner_value: string | null;
   status_message: string | null;
   profile_alignment?: string | null;
+  font_family?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,10 +41,11 @@ export const useProfile = (userId?: string) => {
 
       if (error) throw error;
       
-      // Ensure profile_alignment has a default value if not set
+      // Ensure profile has default values if not set
       const profileData = {
         ...data,
-        profile_alignment: data.profile_alignment || 'left'
+        profile_alignment: data.profile_alignment || 'left',
+        font_family: data.font_family || 'Inter'
       };
       
       setProfile(profileData);

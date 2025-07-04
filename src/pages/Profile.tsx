@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
@@ -37,6 +36,7 @@ interface Profile {
   banner_value: string | null;
   status_message: string | null;
   profile_alignment?: string | null;
+  font_family?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -132,21 +132,11 @@ const Profile = () => {
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
   const isOwnProfile = currentUser?.id === userId;
   const canModerate = userRole === 'admin' || userRole === 'moderator';
-  const alignment = profile.profile_alignment || 'left';
+  const fontFamily = profile.font_family || 'Inter';
 
-  const getAlignmentClasses = () => {
-    switch (alignment) {
-      case 'center':
-        return 'text-center items-center';
-      case 'right':
-        return 'text-right items-end';
-      default:
-        return 'text-left items-start';
-    }
-  };
-
-  const getFlexDirection = () => {
-    return alignment === 'center' ? 'flex-col' : 'flex-row';
+  // Get font style for the profile
+  const getFontStyle = () => {
+    return { fontFamily };
   };
 
   return (
@@ -167,131 +157,112 @@ const Profile = () => {
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Profile Card */}
-        <Card className="border-0 shadow-lg rounded-xl overflow-hidden relative">
-          {/* Profile Banner Background */}
-          <ProfileBanner 
-            bannerType={profile.banner_type}
-            bannerValue={profile.banner_value}
-            className={`absolute inset-0 ${profile.banner_type === 'image' ? 'opacity-40' : 'opacity-20'}`}
-          />
-          <div className={`absolute inset-0 ${profile.banner_type === 'image' ? 'bg-card/80 backdrop-blur-md' : 'bg-card/90 backdrop-blur-sm'}`}></div>
-          <CardContent className="relative z-10 p-4 sm:p-6">
-            <div className={`flex ${getFlexDirection()} ${alignment === 'center' ? 'gap-6' : 'gap-4'} ${getAlignmentClasses()}`}>
-              {/* Avatar - positioned first in center alignment for pyramid structure */}
-              {alignment === 'center' && (
-                <div className="flex justify-center mb-4">
-                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              )}
-              
-              {/* Avatar for left/right alignment */}
-              {alignment !== 'center' && (
-                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-4 border-background shadow-lg">
-                  <AvatarImage src={profile.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+        {/* Profile Card - New Design */}
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative">
+          {/* Edit button positioned absolutely */}
+          {isOwnProfile && (
+            <Button
+              onClick={() => setIsEditModalOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 right-4 z-10 text-white/70 hover:text-white hover:bg-white/10 rounded-full p-2"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
+          
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex items-start gap-6">
+              {/* Avatar */}
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white/20 shadow-xl flex-shrink-0">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
               
               {/* Profile Info */}
-              <div className={`flex-1 min-w-0 ${alignment === 'center' ? 'w-full' : ''}`}>
-                {/* Name and Role */}
-                <div className={`flex ${alignment === 'center' ? 'flex-col' : 'flex-row'} ${alignment === 'center' ? 'items-center' : 'items-start'} gap-2 mb-2`}>
-                  <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-foreground ${alignment === 'center' ? 'text-center' : 'truncate'}`}>
+              <div className="flex-1 min-w-0">
+                {/* Name and Username */}
+                <div className="mb-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1" style={getFontStyle()}>
                     {displayName}
                   </h1>
+                  {profile.username && (
+                    <p className="text-white/70 text-lg" style={getFontStyle()}>
+                      @{profile.username}
+                    </p>
+                  )}
                   {userId && (
-                    <div className={alignment === 'center' ? 'flex justify-center' : ''}>
+                    <div className="mt-2">
                       <CustomRoleBadge userId={userId} />
                     </div>
                   )}
                 </div>
                 
-                {/* Username */}
-                {profile.username && (
-                  <p className={`text-muted-foreground text-base sm:text-lg mb-2 ${alignment === 'center' ? 'text-center' : ''}`}>
-                    @{profile.username}
-                  </p>
-                )}
-                
-                {/* Status Message */}
+                {/* Bio */}
                 {profile.status_message && (
-                  <p className={`text-foreground mb-4 text-sm sm:text-base ${alignment === 'center' ? 'text-center max-w-md mx-auto' : ''}`}>
+                  <p className="text-white/90 mb-6 text-base leading-relaxed" style={getFontStyle()}>
                     {profile.status_message}
                   </p>
                 )}
                 
-                {/* Stats */}
-                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground mb-4`}>
-                  <span><strong>{followers.length}</strong> Followers</span>
-                  <span><strong>{following.length}</strong> Following</span>
-                  <span><strong>{discussions.length}</strong> Posts</span>
-                  <span className="hidden sm:inline">Joined {new Date(profile.created_at).toLocaleDateString()}</span>
+                {/* Stats Row */}
+                <div className="flex flex-wrap gap-6 text-sm text-white/70 mb-6" style={getFontStyle()}>
+                  <span><strong className="text-white">{followers.length}</strong> Followers</span>
+                  <span><strong className="text-white">{following.length}</strong> Following</span>
+                  <span><strong className="text-white">{discussions.length}</strong> Discussion</span>
+                  <span><strong className="text-white">1</strong> Bounty</span>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className={`flex ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : 'justify-start'} flex-wrap gap-2`}>
-                  {isOwnProfile ? (
+                {!isOwnProfile && currentUser && (
+                  <div className="flex flex-wrap gap-3">
                     <Button
-                      onClick={() => setIsEditModalOpen(true)}
-                      variant="outline"
+                      onClick={toggleFollow}
+                      variant={isFollowing ? "outline" : "default"}
                       size="sm"
-                      className="text-xs sm:text-sm"
+                      className={`text-sm ${
+                        isFollowing 
+                          ? 'border-white/30 text-white hover:bg-white/10' 
+                          : 'bg-white text-gray-900 hover:bg-white/90'
+                      }`}
                     >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      Edit Profile
-                    </Button>
-                  ) : currentUser ? (
-                    <>
-                      <Button
-                        onClick={toggleFollow}
-                        variant={isFollowing ? "outline" : "default"}
-                        size="sm"
-                        className="text-xs sm:text-sm"
-                      >
-                        {isFollowing ? (
-                          <>
-                            <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            Unfollow
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            Follow
-                          </>
-                        )}
-                      </Button>
-                      
-                      {canModerate && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(userId!, 'ban')}
-                            className="text-destructive border-destructive/20 hover:bg-destructive/10 p-2"
-                          >
-                            <Ban className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(userId!, 'mute')}
-                            className="text-orange-600 border-orange-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 p-2"
-                          >
-                            <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                        </div>
+                      {isFollowing ? (
+                        <>
+                          <UserMinus className="h-4 w-4 mr-2" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Follow
+                        </>
                       )}
-                    </>
-                  ) : null}
-                </div>
+                    </Button>
+                    
+                    {canModerate && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moderateUser(userId!, 'ban')}
+                          className="border-red-500/30 text-red-400 hover:bg-red-500/10 p-2"
+                        >
+                          <Ban className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moderateUser(userId!, 'mute')}
+                          className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 p-2"
+                        >
+                          <VolumeX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -299,7 +270,7 @@ const Profile = () => {
 
         {/* Discussions */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Discussions</h2>
+          <h2 className="text-xl font-semibold text-foreground" style={getFontStyle()}>Discussions</h2>
           
           {discussions.length > 0 ? (
             discussions.map((discussion) => {
@@ -330,8 +301,8 @@ const Profile = () => {
             <Card className="bg-card/90 backdrop-blur-sm border-0 shadow-lg rounded-xl">
               <CardContent className="text-center py-12">
                 <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">No discussions yet</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold text-foreground mb-2" style={getFontStyle()}>No discussions yet</h3>
+                <p className="text-muted-foreground" style={getFontStyle()}>
                   {isOwnProfile ? "Start a discussion to see it here!" : "This user hasn't created any discussions yet."}
                 </p>
               </CardContent>

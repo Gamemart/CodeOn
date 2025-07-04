@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Palette, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { X, Upload, Palette, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Type } from 'lucide-react';
 import AvatarCropper from '@/components/AvatarCropper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ interface Profile {
   banner_value: string | null;
   status_message: string | null;
   profile_alignment?: string | null;
+  font_family?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -43,7 +44,8 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
     status_message: '',
     banner_type: 'color',
     banner_value: '#3B82F6',
-    profile_alignment: 'left'
+    profile_alignment: 'left',
+    font_family: 'Inter'
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -60,7 +62,8 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
         status_message: profile.status_message || '',
         banner_type: profile.banner_type || 'color',
         banner_value: profile.banner_value || '#3B82F6',
-        profile_alignment: profile.profile_alignment || 'left'
+        profile_alignment: profile.profile_alignment || 'left',
+        font_family: profile.font_family || 'Inter'
       });
       setAvatarPreview(profile.avatar_url);
     }
@@ -145,6 +148,7 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
         banner_value: bannerValue,
         status_message: formData.status_message,
         profile_alignment: formData.profile_alignment,
+        font_family: formData.font_family,
         updated_at: new Date().toISOString()
       };
 
@@ -199,6 +203,25 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
     { value: 'right', label: 'Right', icon: AlignRight }
   ];
 
+  const fontOptions = [
+    { value: 'Inter', label: 'Inter (Default)' },
+    { value: 'Arial', label: 'Arial' },
+    { value: 'Times New Roman', label: 'Times New Roman' },
+    { value: 'Georgia', label: 'Georgia' },
+    { value: 'Helvetica', label: 'Helvetica' },
+    { value: 'Verdana', label: 'Verdana' },
+    { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+    { value: 'Courier New', label: 'Courier New' },
+    { value: 'Palatino', label: 'Palatino' },
+    { value: 'Garamond', label: 'Garamond' },
+    { value: 'Alice', label: 'Alice' },
+    { value: 'Roboto', label: 'Roboto' },
+    { value: 'Open Sans', label: 'Open Sans' },
+    { value: 'Lato', label: 'Lato' },
+    { value: 'Montserrat', label: 'Montserrat' },
+    { value: 'Poppins', label: 'Poppins' }
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -242,6 +265,36 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
               />
               <p className="text-xs text-gray-500 mt-1">
                 {formData.status_message.length}/150 characters
+              </p>
+            </div>
+
+            {/* Font Family Selection */}
+            <div>
+              <Label className="flex items-center gap-2">
+                <Type className="h-4 w-4" />
+                Font Family
+              </Label>
+              <Select
+                value={formData.font_family}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, font_family: value }))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select font family" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {fontOptions.map((font) => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: font.value }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Preview: <span style={{ fontFamily: formData.font_family }}>The quick brown fox jumps over the lazy dog</span>
               </p>
             </div>
 
