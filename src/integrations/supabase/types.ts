@@ -138,33 +138,6 @@ export type Database = {
         }
         Relationships: []
       }
-      custom_roles: {
-        Row: {
-          color: string | null
-          created_at: string
-          created_by: string
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       discussion_tags: {
         Row: {
           created_at: string
@@ -426,95 +399,6 @@ export type Database = {
           },
         ]
       }
-      user_custom_roles: {
-        Row: {
-          assigned_at: string
-          assigned_by: string
-          custom_role_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by: string
-          custom_role_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string
-          custom_role_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_custom_roles_custom_role_id_fkey"
-            columns: ["custom_role_id"]
-            isOneToOne: false
-            referencedRelation: "custom_roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_moderation: {
-        Row: {
-          action_type: string
-          created_at: string
-          expires_at: string | null
-          id: string
-          is_active: boolean
-          moderator_id: string
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          action_type: string
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          moderator_id: string
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          action_type?: string
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          is_active?: boolean
-          moderator_id?: string
-          reason?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          assigned_at: string
-          assigned_by: string | null
-          id: string
-          role: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -524,28 +408,13 @@ export type Database = {
         Args: { other_user_id: string }
         Returns: string
       }
-      get_user_custom_role: {
-        Args: { user_uuid: string }
-        Returns: {
-          name: string
-          color: string
-        }[]
-      }
-      get_user_role: {
-        Args: Record<PropertyKey, never> | { user_uuid: string }
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
       is_chat_member: {
         Args: { chat_uuid: string; user_uuid: string }
         Returns: boolean
       }
-      is_user_moderated: {
-        Args: { user_uuid: string; action: string }
-        Returns: boolean
-      }
     }
     Enums: {
-      user_role: "user" | "moderator" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -660,8 +529,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      user_role: ["user", "moderator", "admin"],
-    },
+    Enums: {},
   },
 } as const

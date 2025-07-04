@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Users, TrendingUp, User, LogOut, Shield, Home, Bell, Phone, Mail, Globe, Edit, DollarSign, Menu, ChevronLeft } from 'lucide-react';
+import { MessageCircle, Users, TrendingUp, User, LogOut, Home, Bell, Phone, Mail, Globe, Edit, DollarSign, Menu, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,6 @@ import CreateBounty from '@/components/CreateBounty';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiscussions } from '@/hooks/useDiscussions';
-import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
 import { useSearch } from '@/hooks/useSearch';
 import { useBounties } from '@/hooks/useBounties';
@@ -27,7 +26,6 @@ const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { discussions, loading: discussionsLoading, createDiscussion, editDiscussion, deleteDiscussion, toggleLike } = useDiscussions();
   const { bounties, loading: bountiesLoading, createBounty, updateBounty, deleteBounty } = useBounties();
-  const { userRole } = useUserRoles();
   const { profile } = useProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -123,15 +121,6 @@ const Index = () => {
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Profile
                 </DropdownMenuItem>
-                {(userRole === 'admin' || userRole === 'moderator') && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Dashboard
-                    </DropdownMenuItem>
-                  </>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />
@@ -420,16 +409,6 @@ const Index = () => {
                 <User className="h-4 w-4" />
                 <span className="ml-3">My Profile</span>
               </Button>
-              {(userRole === 'admin' || userRole === 'moderator') && (
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  onClick={() => navigate('/admin')}
-                >
-                  <Shield className="h-4 w-4" />
-                  <span className="ml-3">Admin</span>
-                </Button>
-              )}
             </div>
           </nav>
 
@@ -454,15 +433,6 @@ const Index = () => {
                   <User className="h-4 w-4 mr-2" />
                   My Profile
                 </DropdownMenuItem>
-                {(userRole === 'admin' || userRole === 'moderator') && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Dashboard
-                    </DropdownMenuItem>
-                  </>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />

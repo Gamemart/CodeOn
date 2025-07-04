@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, UserPlus, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -75,6 +75,17 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const generateUsername = (fullName: string) => {
+    // Create a username from full name + random number
+    const baseUsername = fullName
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .substring(0, 15);
+    
+    const randomSuffix = Math.floor(Math.random() * 10000);
+    return `${baseUsername}${randomSuffix}`;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -89,10 +100,13 @@ const Auth = () => {
     try {
       console.log('Starting signup process...');
       
+      // Generate username if not provided
+      const finalUsername = username.trim() || generateUsername(fullName);
+
       // Prepare user metadata
       const userMetadata = {
         full_name: fullName.trim(),
-        username: username.trim() || fullName.toLowerCase().replace(/\s+/g, '').substring(0, 20)
+        username: finalUsername
       };
 
       console.log('User metadata:', userMetadata);
@@ -146,8 +160,8 @@ const Auth = () => {
         } else {
           setSuccess('Account created successfully! You are now signed in.');
           toast({
-            title: "Account created successfully!",
-            description: "Welcome! You're now signed in."
+            title: "Welcome to ESTRANGHERO!",
+            description: "Your account has been created successfully."
           });
           
           // Small delay to ensure everything is set up
@@ -215,7 +229,7 @@ const Auth = () => {
         setSuccess('Successfully signed in! Redirecting...');
         toast({
           title: "Welcome back!",
-          description: "You've successfully signed in."
+          description: "You've successfully signed in to ESTRANGHERO."
         });
         
         // Small delay for better UX
@@ -258,15 +272,15 @@ const Auth = () => {
           {/* Brand */}
           <div className="text-center lg:text-left">
             <div className="bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded-lg inline-block mb-6">
-              UTech Platform
+              ESTRANGHERO
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-              {activeTab === 'signin' ? 'Welcome back' : 'Create account'}
+              {activeTab === 'signin' ? 'Welcome back' : 'Join ESTRANGHERO'}
             </h1>
             <p className="text-muted-foreground text-base sm:text-lg">
               {activeTab === 'signin' 
-                ? 'Welcome to the Smart Site System for Oil Depots. Sign in to continue.' 
-                : 'Join the Smart Site System for Oil Depots today.'
+                ? 'Sign in to continue your journey with us.' 
+                : 'Create your account and start connecting with others.'
               }
             </p>
           </div>
@@ -305,7 +319,7 @@ const Auth = () => {
               <form onSubmit={handleSignIn} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-foreground font-medium">
-                    E-mail
+                    Email Address
                   </Label>
                   <Input
                     id="email"
@@ -330,7 +344,7 @@ const Auth = () => {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••••"
+                      placeholder="Enter your password"
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); clearMessages(); }}
                       className={`h-12 pr-12 ${errors.password ? 'border-red-500' : ''}`}
@@ -358,16 +372,6 @@ const Auth = () => {
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
-
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-foreground text-sm underline"
-                    disabled={loading}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
               </form>
             </TabsContent>
             
@@ -413,7 +417,7 @@ const Auth = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="text-foreground font-medium">
-                    E-mail *
+                    Email Address *
                   </Label>
                   <Input
                     id="signup-email"
@@ -438,7 +442,7 @@ const Auth = () => {
                     <Input
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••••"
+                      placeholder="Create a secure password"
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); clearMessages(); }}
                       className={`h-12 pr-12 ${errors.password ? 'border-red-500' : ''}`}
