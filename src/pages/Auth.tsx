@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,55 +18,91 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
       }
     };
     checkAuth();
   }, [navigate]);
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!email || !password || !fullName) {
-      toast({
-        title: "Please fill in all required fields",
-        description: "Email, password, and full name are required for signup.",
-        variant: "destructive"
-      });
-      return;
+  const validateForm = (isSignUp: boolean = false) => {
+    const newErrors: {[key: string]: string} = {};
+
+    // Email validation
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
-    if (password.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive"
-      });
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
+    }
+
+    // Sign up specific validations
+    if (isSignUp) {
+      if (!fullName) {
+        newErrors.fullName = 'Full name is required';
+      } else if (fullName.length < 2) {
+        newErrors.fullName = 'Full name must be at least 2 characters long';
+      }
+
+      if (username && username.length < 3) {
+        newErrors.username = 'Username must be at least 3 characters long';
+      }
+
+      if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+        newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    setSuccess('');
+    
+    if (!validateForm(true)) {
       return;
     }
 
     setLoading(true);
     
     try {
-      console.log('Starting signup process for:', email);
+      console.log('Starting signup process...');
       
+      // Prepare user metadata
+      const userMetadata = {
+        full_name: fullName.trim(),
+        username: username.trim() || fullName.toLowerCase().replace(/\s+/g, '').substring(0, 20)
+      };
+
+      console.log('User metadata:', userMetadata);
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName.trim(),
-            username: username.trim() || fullName.toLowerCase().replace(/\s+/g, '').substring(0, 20)
-          }
+          data: userMetadata
         }
       });
 
@@ -77,25 +113,24 @@ const Auth = () => {
         
         // Handle specific error cases
         if (error.message.includes('User already registered')) {
-          toast({
-            title: "Account already exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive"
-          });
+          setErrors({ email: 'An account with this email already exists. Please sign in instead.' });
           setActiveTab('signin');
           return;
         }
         
-        if (error.message.includes('Database error')) {
-          toast({
-            title: "Server error",
-            description: "There was a problem creating your account. Please try again in a moment.",
-            variant: "destructive"
-          });
+        if (error.message.includes('Invalid email')) {
+          setErrors({ email: 'Please enter a valid email address' });
+          return;
+        }
+
+        if (error.message.includes('Password')) {
+          setErrors({ password: error.message });
           return;
         }
         
-        throw error;
+        // Generic error
+        setErrors({ general: error.message });
+        return;
       }
 
       if (data.user) {
@@ -103,16 +138,22 @@ const Auth = () => {
         
         // Check if user needs email confirmation
         if (!data.session) {
+          setSuccess('Please check your email for a confirmation link to complete your registration.');
           toast({
             title: "Check your email",
             description: "We sent you a confirmation link. Please check your email to complete signup.",
           });
         } else {
+          setSuccess('Account created successfully! You are now signed in.');
           toast({
             title: "Account created successfully!",
             description: "Welcome! You're now signed in."
           });
-          navigate('/');
+          
+          // Small delay to ensure everything is set up
+          setTimeout(() => {
+            navigate('/');
+          }, 1000);
           return;
         }
       }
@@ -124,19 +165,8 @@ const Auth = () => {
       setUsername('');
       
     } catch (error: any) {
-      console.error('Signup error:', error);
-      
-      let errorMessage = "An unexpected error occurred during signup.";
-      
-      if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Signup failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      console.error('Unexpected signup error:', error);
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -144,20 +174,17 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    setSuccess('');
     
-    if (!email || !password) {
-      toast({
-        title: "Please fill in all fields",
-        description: "Email and password are required.",
-        variant: "destructive"
-      });
+    if (!validateForm(false)) {
       return;
     }
 
     setLoading(true);
     
     try {
-      console.log('Starting signin process for:', email);
+      console.log('Starting signin process...');
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -170,37 +197,44 @@ const Auth = () => {
         console.error('Signin error:', error);
         
         if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Invalid credentials",
-            description: "The email or password you entered is incorrect.",
-            variant: "destructive"
-          });
+          setErrors({ general: 'Invalid email or password. Please check your credentials and try again.' });
+          return;
+        }
+
+        if (error.message.includes('Email not confirmed')) {
+          setErrors({ general: 'Please check your email and click the confirmation link before signing in.' });
           return;
         }
         
-        throw error;
+        setErrors({ general: error.message });
+        return;
       }
 
       if (data.user) {
         console.log('User signed in successfully:', data.user.id);
+        setSuccess('Successfully signed in! Redirecting...');
         toast({
           title: "Welcome back!",
           description: "You've successfully signed in."
         });
-        navigate('/');
+        
+        // Small delay for better UX
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
       }
       
     } catch (error: any) {
-      console.error('Signin error:', error);
-      
-      toast({
-        title: "Sign in failed",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive"
-      });
+      console.error('Unexpected signin error:', error);
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearMessages = () => {
+    setErrors({});
+    setSuccess('');
   };
 
   return (
@@ -237,7 +271,27 @@ const Auth = () => {
             </p>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Success Message */}
+          {success && (
+            <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800 dark:text-green-200">
+                {success}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Error Messages */}
+          {errors.general && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {errors.general}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); clearMessages(); }} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">
                 Sign In
@@ -258,11 +312,14 @@ const Auth = () => {
                     type="email"
                     placeholder="name@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-12"
+                    onChange={(e) => { setEmail(e.target.value); clearMessages(); }}
+                    className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
                     required
                     disabled={loading}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -275,8 +332,8 @@ const Auth = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••••"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 pr-12"
+                      onChange={(e) => { setPassword(e.target.value); clearMessages(); }}
+                      className={`h-12 pr-12 ${errors.password ? 'border-red-500' : ''}`}
                       required
                       disabled={loading}
                     />
@@ -284,10 +341,14 @@ const Auth = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      disabled={loading}
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password}</p>
+                  )}
                 </div>
                 
                 <Button 
@@ -302,6 +363,7 @@ const Auth = () => {
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground text-sm underline"
+                    disabled={loading}
                   >
                     Forgot password?
                   </button>
@@ -319,11 +381,14 @@ const Auth = () => {
                     id="fullName"
                     placeholder="John Doe"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="h-12"
+                    onChange={(e) => { setFullName(e.target.value); clearMessages(); }}
+                    className={`h-12 ${errors.fullName ? 'border-red-500' : ''}`}
                     required
                     disabled={loading}
                   />
+                  {errors.fullName && (
+                    <p className="text-sm text-red-600">{errors.fullName}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -334,10 +399,16 @@ const Auth = () => {
                     id="username"
                     placeholder="johndoe"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="h-12"
+                    onChange={(e) => { setUsername(e.target.value); clearMessages(); }}
+                    className={`h-12 ${errors.username ? 'border-red-500' : ''}`}
                     disabled={loading}
                   />
+                  {errors.username && (
+                    <p className="text-sm text-red-600">{errors.username}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Letters, numbers, and underscores only. Will be auto-generated if left empty.
+                  </p>
                 </div>
                 
                 <div className="space-y-2">
@@ -349,11 +420,14 @@ const Auth = () => {
                     type="email"
                     placeholder="name@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-12"
+                    onChange={(e) => { setEmail(e.target.value); clearMessages(); }}
+                    className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
                     required
                     disabled={loading}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -366,8 +440,8 @@ const Auth = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••••"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 pr-12"
+                      onChange={(e) => { setPassword(e.target.value); clearMessages(); }}
+                      className={`h-12 pr-12 ${errors.password ? 'border-red-500' : ''}`}
                       required
                       disabled={loading}
                       minLength={6}
@@ -376,10 +450,14 @@ const Auth = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      disabled={loading}
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
                 </div>
                 
@@ -396,7 +474,7 @@ const Auth = () => {
                     Already have an account?{' '}
                     <button
                       type="button"
-                      onClick={() => setActiveTab('signin')}
+                      onClick={() => { setActiveTab('signin'); clearMessages(); }}
                       className="text-foreground hover:underline font-medium"
                       disabled={loading}
                     >
