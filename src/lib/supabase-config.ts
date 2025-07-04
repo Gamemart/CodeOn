@@ -8,11 +8,21 @@ export const DISCORD_CONFIG = {
   redirectUrl: `${window.location.origin}/auth/callback`
 };
 
+// Get the correct redirect URL based on environment
+const getRedirectUrl = () => {
+  // In production, use the deployed URL
+  if (window.location.hostname !== 'localhost') {
+    return window.location.origin;
+  }
+  // In development, use localhost
+  return 'http://localhost:8080';
+};
+
 // OAuth provider configuration for Supabase
 export const getDiscordOAuthConfig = () => ({
   provider: 'discord' as const,
   options: {
-    redirectTo: `${window.location.origin}/`,
+    redirectTo: getRedirectUrl(),
     scopes: DISCORD_CONFIG.scopes,
     queryParams: {
       access_type: 'offline',
