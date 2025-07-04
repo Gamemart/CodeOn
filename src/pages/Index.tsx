@@ -36,7 +36,6 @@ const Index = () => {
   const navigate = useNavigate();
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -357,10 +356,10 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="flex h-screen">
         {/* Left Sidebar */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-card/80 backdrop-blur-md border-r border-border flex flex-col transition-all duration-300`}>
-          {/* Logo and Toggle */}
+        <div className="w-64 bg-card/80 backdrop-blur-md border-r border-border flex flex-col">
+          {/* Logo */}
           <div className="p-6 border-b border-border flex items-center justify-between">
-            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/7afeeb37-7c54-4797-96a2-394387235bdd.png" 
@@ -368,79 +367,67 @@ const Index = () => {
                   className="w-8 h-8 object-contain"
                 />
               </div>
-              {!sidebarCollapsed && (
-                <span className="text-xl font-bold text-foreground">ESTRANGHERO</span>
-              )}
+              <span className="text-xl font-bold text-foreground">ESTRANGHERO</span>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2"
-            >
-              {sidebarCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
           </div>
 
           {/* Search */}
-          {!sidebarCollapsed && (
-            <div className="p-4">
-              <div className="relative">
-                <Input
-                  placeholder="Search discussions and users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-muted/50 border-border"
-                />
-              </div>
+          <div className="p-4">
+            <div className="relative">
+              <Input
+                placeholder="Search discussions and users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-muted/50 border-border"
+              />
             </div>
-          )}
+          </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2">
             <div className="space-y-1">
               <Button 
                 variant="ghost" 
-                className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start'} ${
+                className={`w-full justify-start ${
                   activeTab === 'home' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
                 onClick={() => setActiveTab('home')}
               >
                 <Home className="h-4 w-4" />
-                {!sidebarCollapsed && <span className="ml-3">Home</span>}
-                {activeTab === 'home' && !sidebarCollapsed && (
+                <span className="ml-3">Home</span>
+                {activeTab === 'home' && (
                   <div className="ml-auto w-2 h-2 bg-primary rounded-full"></div>
                 )}
               </Button>
               <Button 
                 variant="ghost" 
-                className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start'} ${
+                className={`w-full justify-start ${
                   activeTab === 'bounty' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
                 onClick={() => setActiveTab('bounty')}
               >
                 <DollarSign className="h-4 w-4" />
-                {!sidebarCollapsed && <span className="ml-3">Bounty Board</span>}
-                {activeTab === 'bounty' && !sidebarCollapsed && (
+                <span className="ml-3">Bounty Board</span>
+                {activeTab === 'bounty' && (
                   <div className="ml-auto w-2 h-2 bg-primary rounded-full"></div>
                 )}
               </Button>
               <Button 
                 variant="ghost" 
-                className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start'} text-muted-foreground hover:text-foreground hover:bg-muted/50`}
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 onClick={() => navigate(`/profile/${user.id}`)}
               >
                 <User className="h-4 w-4" />
-                {!sidebarCollapsed && <span className="ml-3">My Profile</span>}
+                <span className="ml-3">My Profile</span>
               </Button>
               {(userRole === 'admin' || userRole === 'moderator') && (
                 <Button 
                   variant="ghost" 
-                  className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start'} text-muted-foreground hover:text-foreground hover:bg-muted/50`}
+                  className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   onClick={() => navigate('/admin')}
                 >
                   <Shield className="h-4 w-4" />
-                  {!sidebarCollapsed && <span className="ml-3">Admin</span>}
+                  <span className="ml-3">Admin</span>
                 </Button>
               )}
             </div>
@@ -450,18 +437,16 @@ const Index = () => {
           <div className="border-t border-border p-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className={`w-full ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start'} h-12`}>
+                <Button variant="ghost" className="w-full justify-start h-12">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
-                  {!sidebarCollapsed && (
-                    <div className="ml-3 text-left">
-                      <p className="text-sm font-medium text-foreground">{userDisplayName}</p>
-                    </div>
-                  )}
+                  <div className="ml-3 text-left">
+                    <p className="text-sm font-medium text-foreground">{userDisplayName}</p>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
