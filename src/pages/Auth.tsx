@@ -89,10 +89,17 @@ const Auth = () => {
     try {
       console.log('Starting signup process...');
       
+      // Generate username if not provided
+      const finalUsername = username.trim() || 
+        fullName.toLowerCase()
+          .replace(/[^a-zA-Z0-9]/g, '')
+          .substring(0, 20) + 
+        Math.floor(Math.random() * 1000);
+
       // Prepare user metadata
       const userMetadata = {
         full_name: fullName.trim(),
-        username: username.trim() || fullName.toLowerCase().replace(/\s+/g, '').substring(0, 20)
+        username: finalUsername
       };
 
       console.log('User metadata:', userMetadata);
@@ -258,15 +265,15 @@ const Auth = () => {
           {/* Brand */}
           <div className="text-center lg:text-left">
             <div className="bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded-lg inline-block mb-6">
-              UTech Platform
+              ESTRANGHERO Platform
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
               {activeTab === 'signin' ? 'Welcome back' : 'Create account'}
             </h1>
             <p className="text-muted-foreground text-base sm:text-lg">
               {activeTab === 'signin' 
-                ? 'Welcome to the Smart Site System for Oil Depots. Sign in to continue.' 
-                : 'Join the Smart Site System for Oil Depots today.'
+                ? 'Welcome to ESTRANGHERO. Sign in to continue.' 
+                : 'Join ESTRANGHERO today.'
               }
             </p>
           </div>
