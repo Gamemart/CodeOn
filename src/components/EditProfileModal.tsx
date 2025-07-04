@@ -140,24 +140,43 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
         }
       }
 
-      const updates = {
-        username: formData.username,
-        full_name: formData.full_name,
+      // Prepare the update object with only the fields that exist in the database
+      const updates: any = {
+        username: formData.username || null,
+        full_name: formData.full_name || null,
         avatar_url: avatarUrl,
         banner_type: formData.banner_type,
         banner_value: bannerValue,
-        status_message: formData.status_message,
+        status_message: formData.status_message || null,
         profile_alignment: formData.profile_alignment,
-        font_family: formData.font_family,
         updated_at: new Date().toISOString()
       };
+
+      // Only add font_family if it's supported (check if column exists)
+      try {
+        // Test if font_family column exists by doing a simple select
+        const { error: testError } = await supabase
+          .from('profiles')
+          .select('font_family')
+          .eq('id', user.id)
+          .limit(1);
+        
+        if (!testError) {
+          updates.font_family = formData.font_family;
+        }
+      } catch (e) {
+        console.log('font_family column not available yet');
+      }
 
       const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       const updatedProfile = { ...profile, ...updates };
       onProfileUpdate(updatedProfile);
@@ -168,11 +187,11 @@ const EditProfileModal = ({ isOpen, onClose, profile, onProfileUpdate }: EditPro
       });
       
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive"
       });
     } finally {
