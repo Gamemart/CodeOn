@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { getDiscordOAuthConfig } from '@/lib/supabase-config';
 
 const DiscordAuth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Check if user is already authenticated
@@ -18,6 +20,7 @@ const DiscordAuth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+          console.log('User already authenticated, redirecting...');
           navigate('/');
         }
       } catch (error) {
@@ -27,45 +30,29 @@ const DiscordAuth = () => {
     checkAuth();
   }, [navigate]);
 
-  // Handle OAuth callback
+  // Handle OAuth callback and auth state changes
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Auth callback error:', error);
-          setError(error.message);
-          return;
-        }
-
-        if (data.session) {
-          console.log('User authenticated successfully:', data.session.user.id);
-          toast({
-            title: "Welcome to ESTRANGHERO!",
-            description: "You've successfully signed in with Discord."
-          });
-          navigate('/');
-        }
-      } catch (error: any) {
-        console.error('Auth callback error:', error);
-        setError('Authentication failed. Please try again.');
-      }
-    };
-
-    // Check for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_IN' && session) {
-          toast({
-            title: "Welcome to ESTRANGHERO!",
-            description: "You've successfully signed in with Discord."
-          });
-          navigate('/');
+          console.log('User signed in successfully:', session.user);
+          
+          // Wait a moment for the profile to be created by the trigger
+          setTimeout(() => {
+            setSuccess('Successfully signed in with Discord!');
+            toast({
+              title: "Welcome to ESTRANGHERO!",
+              description: "You've successfully signed in with Discord."
+            });
+            navigate('/');
+          }, 1000);
+          
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
         }
       }
     );
@@ -78,29 +65,36 @@ const DiscordAuth = () => {
   const handleDiscordLogin = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       console.log('Initiating Discord OAuth...');
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-          scopes: 'identify email'
-        }
-      });
+      const config = getDiscordOAuthConfig();
+      const { data, error } = await supabase.auth.signInWithOAuth(config);
 
       if (error) {
         console.error('Discord OAuth error:', error);
-        setError(error.message);
+        
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Discord authentication failed. Please try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please confirm your Discord email address first.');
+        } else if (error.message.includes('Provider not found')) {
+          setError('Discord authentication is not properly configured. Please contact support.');
+        } else {
+          setError(error.message);
+        }
         return;
       }
 
       console.log('Discord OAuth initiated successfully');
+      setSuccess('Redirecting to Discord...');
       
     } catch (error: any) {
       console.error('Unexpected Discord OAuth error:', error);
-      setError('Failed to connect to Discord. Please try again.');
+      setError('Failed to connect to Discord. Please check your internet connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -137,6 +131,16 @@ const DiscordAuth = () => {
             </p>
           </div>
 
+          {/* Success Message */}
+          {success && (
+            <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800 dark:text-green-200">
+                {success}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Error Message */}
           {error && (
             <Alert variant="destructive">
@@ -159,7 +163,7 @@ const DiscordAuth = () => {
               <Button
                 onClick={handleDiscordLogin}
                 disabled={loading}
-                className="w-full h-12 bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium rounded-lg flex items-center justify-center gap-3"
+                className="w-full h-12 bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium rounded-lg flex items-center justify-center gap-3 transition-colors"
               >
                 {loading ? (
                   <>
@@ -205,6 +209,13 @@ const DiscordAuth = () => {
                 <span>Real-time chat and messaging</span>
               </div>
             </div>
+          </div>
+
+          {/* Configuration Status */}
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              Discord OAuth configured with Client ID: 1190133425877811241
+            </p>
           </div>
         </div>
       </div>
