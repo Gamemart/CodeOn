@@ -97,11 +97,15 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      console.log('Starting signup process...');
+      
       // Prepare user metadata
       const userMetadata = {
         full_name: fullName.trim(),
         ...(username.trim() && { username: username.trim() })
       };
+
+      console.log('User metadata:', userMetadata);
 
       // Sign up the user
       const { data, error } = await supabase.auth.signUp({
@@ -112,6 +116,8 @@ const Auth = () => {
           data: userMetadata
         }
       });
+
+      console.log('Signup response:', { data, error });
 
       if (error) {
         console.error('Signup error:', error);
@@ -139,6 +145,11 @@ const Auth = () => {
       }
 
       if (data.user) {
+        console.log('User created successfully:', data.user.id);
+        
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         // Check if user needs email confirmation
         if (!data.session) {
           setSuccess('Please check your email for a confirmation link to complete your registration.');
@@ -187,10 +198,14 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      console.log('Starting signin process...');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
       });
+
+      console.log('Signin response:', { data, error });
 
       if (error) {
         console.error('Signin error:', error);
@@ -210,6 +225,7 @@ const Auth = () => {
       }
 
       if (data.user) {
+        console.log('User signed in successfully:', data.user.id);
         setSuccess('Successfully signed in! Redirecting...');
         toast({
           title: "Welcome back!",

@@ -17,6 +17,7 @@ export const useAuth = () => {
         } else {
           setSession(session);
           setUser(session?.user ?? null);
+          console.log('Initial session loaded:', session?.user?.id);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -39,6 +40,25 @@ export const useAuth = () => {
         // Handle specific auth events
         if (event === 'SIGNED_IN') {
           console.log('User signed in:', session?.user?.id);
+          
+          // Verify profile exists after sign in
+          if (session?.user?.id) {
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('id, username, full_name')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (error) {
+                console.error('Profile not found after sign in:', error);
+              } else {
+                console.log('Profile verified:', profile);
+              }
+            } catch (error) {
+              console.error('Error verifying profile:', error);
+            }
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out');
         } else if (event === 'TOKEN_REFRESHED') {
@@ -60,6 +80,7 @@ export const useAuth = () => {
         console.error('Error signing out:', error);
         throw error;
       }
+      console.log('User signed out successfully');
     } catch (error) {
       console.error('Error in signOut:', error);
       throw error;
@@ -75,6 +96,7 @@ export const useAuth = () => {
         console.error('Error refreshing session:', error);
         throw error;
       }
+      console.log('Session refreshed successfully');
       return data;
     } catch (error) {
       console.error('Error in refreshSession:', error);
