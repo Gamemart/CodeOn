@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, MessageCircle, MoreHorizontal, Edit, Trash2, Check, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +7,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ReplySection from '@/components/ReplySection';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -129,11 +127,6 @@ const DiscussionCard = ({ discussion, onLike, onAuthorClick, onEdit, onDelete }:
                 >
                   {discussion.author}
                 </span>
-                {discussion.authorId && (
-                  <div className="flex-shrink-0">
-                    <CustomRoleBadge userId={discussion.authorId} />
-                  </div>
-                )}
                 <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm whitespace-nowrap">• {discussion.createdAt}</span>
               </div>
               {discussion.statusMessage && (

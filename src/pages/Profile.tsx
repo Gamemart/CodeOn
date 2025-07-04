@@ -1,20 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Shield, Ban, Volume, VolumeX, Edit } from 'lucide-react';
+import { User, Users, MessageCircle, Calendar, ArrowLeft, UserPlus, UserMinus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DiscussionCard from '@/components/DiscussionCard';
-import CustomRoleBadge from '@/components/CustomRoleBadge';
 import ProfileBanner from '@/components/ProfileBanner';
 import EditProfileModal from '@/components/EditProfileModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollows } from '@/hooks/useFollows';
-import { useUserRoles } from '@/hooks/useUserRoles';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from '@/hooks/use-toast';
 
@@ -46,17 +43,14 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { followers, following, isFollowing, toggleFollow } = useFollows(userId);
-  const { userRole, updateUserRole, moderateUser } = useUserRoles();
   const { profile, loading: profileLoading, updateProfile } = useProfile(userId);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
-  const [userRoleData, setUserRoleData] = useState<string>('user');
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (userId) {
       fetchUserDiscussions();
-      fetchUserRole();
     }
   }, [userId]);
 
@@ -79,23 +73,6 @@ const Profile = () => {
       console.error('Error fetching user discussions:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserRole = async () => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setUserRoleData(data?.role || 'user');
-    } catch (error) {
-      console.error('Error fetching user role:', error);
     }
   };
 
@@ -131,7 +108,6 @@ const Profile = () => {
   const displayName = profile.full_name || profile.username || 'Anonymous User';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase();
   const isOwnProfile = currentUser?.id === userId;
-  const canModerate = userRole === 'admin' || userRole === 'moderator';
   const alignment = profile.profile_alignment || 'left';
 
   const getAlignmentClasses = () => {
@@ -202,16 +178,11 @@ const Profile = () => {
               
               {/* Profile Info */}
               <div className={`flex-1 min-w-0 ${alignment === 'center' ? 'w-full' : ''}`}>
-                {/* Name and Role */}
+                {/* Name */}
                 <div className={`flex ${alignment === 'center' ? 'flex-col' : 'flex-row'} ${alignment === 'center' ? 'items-center' : 'items-start'} gap-2 mb-2`}>
                   <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold text-foreground ${alignment === 'center' ? 'text-center' : 'truncate'}`}>
                     {displayName}
                   </h1>
-                  {userId && (
-                    <div className={alignment === 'center' ? 'flex justify-center' : ''}>
-                      <CustomRoleBadge userId={userId} />
-                    </div>
-                  )}
                 </div>
                 
                 {/* Username */}
@@ -249,47 +220,24 @@ const Profile = () => {
                       Edit Profile
                     </Button>
                   ) : currentUser ? (
-                    <>
-                      <Button
-                        onClick={toggleFollow}
-                        variant={isFollowing ? "outline" : "default"}
-                        size="sm"
-                        className="text-xs sm:text-sm"
-                      >
-                        {isFollowing ? (
-                          <>
-                            <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            Unfollow
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            Follow
-                          </>
-                        )}
-                      </Button>
-                      
-                      {canModerate && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(userId!, 'ban')}
-                            className="text-destructive border-destructive/20 hover:bg-destructive/10 p-2"
-                          >
-                            <Ban className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moderateUser(userId!, 'mute')}
-                            className="text-orange-600 border-orange-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 p-2"
-                          >
-                            <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                        </div>
+                    <Button
+                      onClick={toggleFollow}
+                      variant={isFollowing ? "outline" : "default"}
+                      size="sm"
+                      className="text-xs sm:text-sm"
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserMinus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Unfollow
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Follow
+                        </>
                       )}
-                    </>
+                    </Button>
                   ) : null}
                 </div>
               </div>
