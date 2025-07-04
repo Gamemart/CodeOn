@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DollarSign, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from '@/hooks/use-toast';
+import { getCurrencySymbol } from '@/utils/currencyUtils';
 
 interface CreateBountyProps {
   onSubmit: (bountyData: {
@@ -150,7 +150,9 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Reward Amount</label>
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                          {getCurrencySymbol(currency)}
+                        </span>
                         <Input
                           type="number"
                           placeholder="0.00"
@@ -168,9 +170,14 @@ const CreateBounty = ({ onSubmit }: CreateBountyProps) => {
                         </SelectTrigger>
                         <SelectContent className="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600">
                           <SelectItem value="USD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">USD</SelectItem>
-                          <SelectItem value="CAD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CAD</SelectItem>
                           <SelectItem value="EUR" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">EUR</SelectItem>
                           <SelectItem value="GBP" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">GBP</SelectItem>
+                          <SelectItem value="CAD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CAD</SelectItem>
+                          <SelectItem value="JPY" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">JPY</SelectItem>
+                          <SelectItem value="AUD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">AUD</SelectItem>
+                          <SelectItem value="CHF" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CHF</SelectItem>
+                          <SelectItem value="BTC" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">BTC</SelectItem>
+                          <SelectItem value="ETH" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">ETH</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

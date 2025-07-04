@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCurrencySymbol } from '@/utils/currencyUtils';
 
 interface EditBountyModalProps {
   isOpen: boolean;
@@ -94,7 +94,9 @@ const EditBountyModal = ({ isOpen, onClose, bounty, onUpdate }: EditBountyModalP
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price" className="text-gray-700 dark:text-gray-300">Price</Label>
+              <Label htmlFor="price" className="text-gray-700 dark:text-gray-300">
+                Price ({getCurrencySymbol(currency)})
+              </Label>
               <Input
                 id="price"
                 type="number"
@@ -116,6 +118,10 @@ const EditBountyModal = ({ isOpen, onClose, bounty, onUpdate }: EditBountyModalP
                   <SelectItem value="USD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">USD</SelectItem>
                   <SelectItem value="EUR" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">EUR</SelectItem>
                   <SelectItem value="GBP" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">GBP</SelectItem>
+                  <SelectItem value="CAD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CAD</SelectItem>
+                  <SelectItem value="JPY" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">JPY</SelectItem>
+                  <SelectItem value="AUD" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">AUD</SelectItem>
+                  <SelectItem value="CHF" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">CHF</SelectItem>
                   <SelectItem value="BTC" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">BTC</SelectItem>
                   <SelectItem value="ETH" className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600">ETH</SelectItem>
                 </SelectContent>

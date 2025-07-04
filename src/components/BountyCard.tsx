@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import EditBountyModal from '@/components/EditBountyModal';
+import { formatCurrency } from '@/utils/currencyUtils';
 
 interface Bounty {
   id: string;
@@ -59,13 +59,8 @@ const BountyCard = ({ bounty, onAuthorClick, onEdit, onDelete }: BountyCardProps
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl sm:text-3xl font-bold text-foreground">
-                ${bounty.price}
+                {formatCurrency(bounty.price, bounty.currency)}
               </span>
-              {bounty.currency !== 'USD' && (
-                <span className="text-sm text-muted-foreground uppercase">
-                  {bounty.currency}
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-2">
               <Badge 
