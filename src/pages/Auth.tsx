@@ -103,7 +103,7 @@ const Auth = () => {
       // Generate username if not provided
       const finalUsername = username.trim() || generateUsername(fullName);
 
-      // Prepare user metadata
+      // Prepare user metadata - this will be used by the trigger
       const userMetadata = {
         full_name: fullName.trim(),
         username: finalUsername
@@ -111,6 +111,7 @@ const Auth = () => {
 
       console.log('User metadata:', userMetadata);
 
+      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -141,6 +142,12 @@ const Auth = () => {
           setErrors({ password: error.message });
           return;
         }
+
+        if (error.message.includes('Database error')) {
+          // This is the specific error we're fixing
+          setErrors({ general: 'There was an issue creating your account. Please try again in a moment.' });
+          return;
+        }
         
         // Generic error
         setErrors({ general: error.message });
@@ -149,6 +156,9 @@ const Auth = () => {
 
       if (data.user) {
         console.log('User created successfully:', data.user.id);
+        
+        // Wait a moment for the trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Check if user needs email confirmation
         if (!data.session) {
