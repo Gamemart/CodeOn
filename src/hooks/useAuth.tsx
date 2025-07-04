@@ -52,6 +52,7 @@ export const useAuth = () => {
               
               if (error) {
                 console.error('Profile not found after sign in:', error);
+                // Profile will be created by the trigger, so this is expected for new users
               } else {
                 console.log('Profile verified:', profile);
               }

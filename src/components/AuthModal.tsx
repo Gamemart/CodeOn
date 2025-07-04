@@ -1,59 +1,53 @@
-
-import React, { useState } from 'react';
-import { User, Mail, Lock, UserPlus } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: { name: string; email: string }) => void;
+  onLogin?: (user: { name: string; email: string }) => void;
 }
 
-const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [nickname, setNickname] = useState('');
+const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+  const navigate = useNavigate();
 
-  const handleEmailLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    
-    onLogin({ name: email.split('@')[0], email });
-    toast({
-      title: "Welcome back!",
-      description: "You've successfully signed in."
-    });
-    onClose();
+  const handleDiscordLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          scopes: 'identify email'
+        }
+      });
+
+      if (error) {
+        console.error('Discord OAuth error:', error);
+        toast({
+          title: "Authentication Error",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      onClose();
+    } catch (error: any) {
+      console.error('Unexpected Discord OAuth error:', error);
+      toast({
+        title: "Authentication Error",
+        description: "Failed to connect to Discord. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEmailSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || !name) return;
-    
-    onLogin({ name, email });
-    toast({
-      title: "Account created!",
-      description: "Welcome to the discussion platform."
-    });
+  const handleGoToAuth = () => {
     onClose();
-  };
-
-  const handleAnonymousJoin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nickname) return;
-    
-    onLogin({ name: nickname, email: '' });
-    toast({
-      title: "Joined as guest!",
-      description: `Welcome, ${nickname}!`
-    });
-    onClose();
+    navigate('/auth');
   };
 
   if (!isOpen) return null;
@@ -63,140 +57,29 @@ const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Join the Discussion
+            Join ESTRANGHERO
           </CardTitle>
+          <p className="text-muted-foreground">
+            Sign in with Discord to join our community
+          </p>
         </CardHeader>
         
-        <CardContent>
-          <Tabs defaultValue="login" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              <TabsTrigger value="guest">Guest</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                  Sign In
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleEmailSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-name"
-                      placeholder="Your Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                  Create Account
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="guest">
-              <form onSubmit={handleAnonymousJoin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nickname">Choose a Nickname</Label>
-                  <div className="relative">
-                    <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="nickname"
-                      placeholder="Anonymous User"
-                      value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <p className="text-sm text-gray-500">
-                  Join as a guest to start participating in discussions. You can create an account later.
-                </p>
-                
-                <Button type="submit" className="w-full bg-gradient-to-r from-green-600 to-blue-600">
-                  Join as Guest
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+        <CardContent className="space-y-4">
+          <Button
+            onClick={handleDiscordLogin}
+            className="w-full h-12 bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium rounded-lg flex items-center justify-center gap-3"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+            </svg>
+            Continue with Discord
+          </Button>
+
+          <div className="text-center">
+            <Button variant="ghost" onClick={handleGoToAuth} className="text-sm">
+              Go to full authentication page
+            </Button>
+          </div>
           
           <div className="flex justify-center mt-4">
             <Button variant="ghost" onClick={onClose}>
