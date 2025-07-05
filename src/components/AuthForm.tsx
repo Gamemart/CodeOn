@@ -103,16 +103,22 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
     setError(null);
 
     try {
+      console.log('Starting Discord OAuth...');
       const config = getDiscordOAuthConfig();
+      console.log('Discord OAuth config:', config);
+      
       const { error } = await supabase.auth.signInWithOAuth(config);
 
       if (error) {
+        console.error('Discord OAuth error:', error);
         throw error;
       }
+      
+      // The redirect will happen automatically, so we don't need to do anything else here
+      console.log('Discord OAuth initiated successfully');
     } catch (error: any) {
       console.error('Discord OAuth error:', error);
       setError('Failed to connect to Discord. Please try again.');
-    } finally {
       setDiscordLoading(false);
     }
   };
