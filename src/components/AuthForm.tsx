@@ -57,7 +57,8 @@ const AuthForm = ({ mode, onToggleMode }: AuthFormProps) => {
             data: {
               full_name: fullName.trim(),
               username: username.trim(),
-            }
+            },
+            emailRedirectTo: window.location.origin
           }
         });
 

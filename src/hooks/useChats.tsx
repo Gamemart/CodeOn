@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,9 +7,6 @@ interface Chat {
   id: string;
   name: string | null;
   type: 'direct' | 'group';
-  created_by: string;
-  created_at: string;
-  updated_at: string;
   participants: {
     user_id: string;
     profiles: {
@@ -22,7 +18,6 @@ interface Chat {
   last_message?: {
     content: string | null;
     created_at: string;
-    sender_id: string;
     message_type: string;
   };
 }

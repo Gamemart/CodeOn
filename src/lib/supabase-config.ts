@@ -9,12 +9,17 @@ export const DISCORD_CONFIG = {
 
 // Get the correct redirect URL based on environment
 const getRedirectUrl = () => {
+  // For production, use the deployed URL
+  if (window.location.hostname === 'veid.xyz') {
+    return 'https://veid.xyz';
+  }
+  
   // Check if we're in development
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return `${window.location.origin}`;
   }
   
-  // For production or other environments, use the current origin
+  // For other environments, use the current origin
   return window.location.origin;
 };
 

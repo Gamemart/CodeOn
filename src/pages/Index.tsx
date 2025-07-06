@@ -56,12 +56,21 @@ const Index = () => {
   }, [searchQuery, performSearch]);
 
   const handleLogout = async () => {
-    await signOut();
-    toast({
-      title: "Signed out",
-      description: "You've been successfully signed out."
-    });
-    navigate('/auth');
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out."
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditProfile = () => {

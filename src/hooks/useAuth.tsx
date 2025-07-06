@@ -14,6 +14,8 @@ export const useAuth = () => {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error getting session:', error);
+          // Clear any invalid session data
+          await supabase.auth.signOut();
         } else {
           setSession(session);
           setUser(session?.user ?? null);
@@ -21,6 +23,8 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
+        // Clear any corrupted session
+        await supabase.auth.signOut();
       } finally {
         setLoading(false);
       }
@@ -50,9 +54,11 @@ export const useAuth = () => {
                 .eq('id', session.user.id)
                 .single();
               
-              if (error) {
-                console.error('Profile not found after sign in:', error);
-                // Profile will be created by the trigger, so this is expected for new users
+              if (error && error.code === 'PGRST116') {
+                // Profile doesn't exist, this is expected for new users
+                console.log('Profile will be created by trigger');
+              } else if (error) {
+                console.error('Error checking profile:', error);
               } else {
                 console.log('Profile verified:', profile);
               }
@@ -95,6 +101,8 @@ export const useAuth = () => {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
         console.error('Error refreshing session:', error);
+        // If refresh fails, sign out to clear invalid session
+        await supabase.auth.signOut();
         throw error;
       }
       console.log('Session refreshed successfully');
